@@ -1,98 +1,123 @@
-# Repository Guidelines
+# Codex Agent Guide (chess_teoryBot/line-master)
 
-## Project Structure & Module Organization
-- `line-master/` contains the Vite + TypeScript app.
-- `line-master/src/` is the main source tree.
-- `line-master/src/background/`, `line-master/src/content/`, and `line-master/src/shared/` are reserved for extension-style modules (background/content scripts and shared utilities).
-- `line-master/src/data/` holds JSON data (e.g., `openings.json`).
-- `line-master/public/` contains static assets and extension metadata (icons, `manifest.json`).
-- `line-master/tests/` exists but is currently empty.
+This file is for me (the agent). It should be enough to understand the repo without extra context.
 
-## Build, Test, and Development Commands
-Run these from `line-master/`:
-- `npm run dev` starts the Vite dev server.
-- `npm run build` runs `tsc` type-checking and builds the production bundle.
-- `npm run preview` serves the production build locally for verification.
+## Repo Shape
+- Root is `/Users/grigory/Documents/chess_teoryBot/line-master`.
+- Vite + TypeScript (ESM). Chrome Extension (Manifest V3).
+- UI is React + Tailwind, migrated from a Next.js design project.
 
-## Coding Style & Naming Conventions
-- TypeScript strict mode is enabled (`tsconfig.json`), so keep types explicit and avoid unused locals/params.
-- Use 2-space indentation in `.ts` and `.css` to match existing files.
-- Prefer `camelCase` for variables/functions, `PascalCase` for types, and `kebab-case` for asset filenames.
-- No formatter or linter is configured yet; keep changes minimal and consistent with nearby code.
+### Key Directories
+- `src/background/`: MV3 service worker, storage, sync.
+- `src/content/`: content scripts for chess.com / lichess.org.
+- `src/shared/`: shared types, constants, logger.
+- `src/core/`: domain logic (openings, filters, recommenders, formatters).
+- `src/data/`: bundled JSON (`openings.json`, `openings.index.json`).
+- `src/components/`, `src/hooks/`, `src/lib/`: UI code (migrated from Next.js).
+- `src/ui/`: extension surface entrypoints (popup/panel/options) + styles.
+- `public/`: static assets, icons, `manifest.json`.
 
-## Testing Guidelines
-- No test runner is configured and `line-master/tests/` is empty.
-- If you add tests, document the chosen framework and add a `npm run test` script.
-- Use descriptive test names that mirror features, e.g., `loads openings index`.
+### Entry Points
+- Popup: `popup.html` → `src/ui/popup/main.tsx`.
+- Panel: `panel.html` → `src/ui/panel/main.tsx`.
+- Options: `options.html` → `src/ui/options/main.tsx`.
+- Background: `src/background/index.ts` (built as `background.js`).
+- Content: `src/content/index.ts` (built as `content.js`).
+- Dev hub: `index.html` (links to popup/panel/options).
 
-## Commit & Pull Request Guidelines
-- There is no existing Git commit history, so no established convention.
-- Use concise, imperative commit subjects (optionally Conventional Commits), e.g., `feat: add openings loader`.
-- PRs should include a short summary, key changes, and screenshots if UI behavior changes.
+### Configs
+- `vite.config.ts`: multi-entry build, `@` alias to `src`.
+- `tailwind.config.ts`: Tailwind v3 config.
+- `postcss.config.mjs`.
+- `tsconfig.json`: strict TS + JSON module imports.
 
-## Configuration Notes
-- The project is a Vite + TypeScript module-based setup (`"type": "module"`).
-- JSON data under `src/data/` is bundled; large additions should be intentional.
+## Commands (run from repo root)
+- `npm run dev` → Vite dev server.
+- `npm run build` → `tsc` + production bundle.
+- `npm run preview` → serve production bundle.
 
-## Product Spec (Full)
-- Product type: Google Chrome extension (Manifest V3).
-- Purpose: Chess “Theory Bot” with a large opening database, search, filters, favorites, and position-based recommendations.
-- Modes: opening catalog, position-based recommendations, favorites, settings.
-- Core entities: opening, line, rating band, opening type, difficulty, tags, ECO.
-- Position sources: chess.com and lichess.org via content scripts.
-- Storage: local JSON + index; `chrome.storage` for favorites and user settings.
-- UI surfaces: popup, side panel, options page.
-- Analytics and commentary: define interfaces now; implement later.
+## Runtime / Load in Chrome
+1. `npm run build`.
+2. Load unpacked: `chrome://extensions` → Developer Mode → Load unpacked → `dist/`.
+3. Refresh extension after rebuilds.
 
-## Architecture (Modules & Responsibilities)
-- `src/background/` hosts MV3 service worker, settings storage, and sync.
-- `src/content/` extracts position/moves from sites, normalizes, and sends to UI.
-- `src/core/` contains domain logic: search, filters, recommendations, formats.
-- `src/data/` holds the openings database and index for fast queries.
-- `src/ui/` contains all React UI (popup, panel, options) and UI state.
-- `src/shared/` contains shared types, constants, utilities.
+## Product Spec Summary
+- Chrome extension: opening database, search, filters, favorites, position recommendations.
+- Sources: chess.com + lichess.org (content scripts).
+- Storage: `chrome.storage` for favorites + settings.
+- Surfaces: popup, side panel, options.
 
-## Module Interfaces (Contracts)
-- `core/openings/index.ts` exports `OpeningsService` with `search`, `recommendByPosition`, `getById`, `listAll`.
-- `core/openings/schema.ts` defines `Opening`, `RatingBand`, `OpeningType`, `Difficulty`.
-- `content/index.ts` exports `detectPosition(): Promise<PositionSnapshot | null>`.
-- `background/storage.ts` exports `FavoritesRepo` and `SettingsRepo` for `chrome.storage`.
-- `ui/state/store.ts` stores `UIState` with filters, favorites, current position.
+## Core Interfaces (contracts)
+- `src/core/openings/index.ts`: `OpeningsService` with `search`, `recommendByPosition`, `getById`, `listAll`.
+- `src/core/openings/schema.ts`: `Opening`, `RatingBand`, `OpeningType`, `Difficulty`.
+- `src/content/index.ts`: `detectPosition(): Promise<PositionSnapshot | null>`.
+- `src/background/storage.ts`: `FavoritesRepo` + `SettingsRepo`.
+- `src/ui/state/store.ts`: `UIState` shape.
 
-## Work Plan (Max Detail)
-1. Initialize project tooling and build system. Details: `npm create vite@latest` with `react-ts`; verify `npm run dev`; confirm baseline build.
-2. Create folder structure and empty files. Details: `background/`, `content/`, `ui/`, `core/`, `data/`, `shared/`; empty entry files; stable import paths.
-3. Add MV3 `manifest.json`. Details: `manifest_version: 3`, `action`, `background.service_worker`, `content_scripts`, `permissions`, `host_permissions`, `icons`.
-4. Configure entry points for background/content/UI. Details: Vite config for separate bundles; popup/options/panel HTML; verify load in Chrome.
-5. Scaffold background service worker. Details: init, `runtime.onMessage`, `chrome.storage` wrappers, basic logging.
-6. Scaffold content script. Details: inject on domains, `detectPosition` entry, safe selectors, no-data handling.
-7. Scaffold UI: popup, panel, options. Details: minimal pages, shared layout, basic styles.
-8. Wire UI state layer. Details: store (zustand/Redux), actions, selectors, filters and favorites state.
-9. Implement domain types (`Opening`, `RatingBand`, `OpeningType`, `Difficulty`). Details: strict types, single source of truth, constants.
-10. Load openings database (JSON) in `core/openings`. Details: static import, shape validation, defaults.
-11. Implement text search (name/ECO). Details: normalize input, search `name`, `eco`, `tags`, limit results.
-12. Implement filters (rating, type, difficulty). Details: filter combinations, empty filter = all, stable ordering.
-13. Implement position-based recommendations (move matching). Details: match move prefix, compute depth, rank by score.
-14. Add openings index (by first moves/keys). Details: build `openings.index.json`, fast lookup, fallback to full scan.
-15. Implement favorites with `chrome.storage`. Details: `FavoritesRepo` API, add/remove, read on startup.
-16. Persist filters/settings with `chrome.storage`. Details: `SettingsRepo` API, schema migration, defaults.
-17. Implement chess.com detector (moves/FEN). Details: DOM parsing, move extraction, FEN reconstruction if needed.
-18. Implement lichess.org detector (moves/FEN). Details: DOM parsing, move extraction, handle game/analysis modes.
-19. Normalize moves/format conversions. Details: SAN/UCI normalization, remove move numbers, ensure consistency.
-20. Integrate: position -> recommendations -> UI. Details: message channel content -> background -> UI; update state; handle errors.
-21. Improve UX for cards and lists. Details: compact cards, rating/type/difficulty badges, quick actions.
-22. Optimize performance and caching. Details: memoize filters, cache by position, lazy list rendering.
-23. Manual testing on chess.com and lichess.org. Details: test detectors in multiple modes, regressions across pages.
-24. Fix defects and stabilize. Details: logging, edge-case fixes, final UX checks.
-25. Package for distribution. Details: production build, size checks, prepare `dist/`.
-26. Documentation for build/install. Details: `chrome://extensions` steps, config notes, limitations.
+## Constraints / Style
+- 2-space indentation in `.ts`/`.css`.
+- Prefer `camelCase` variables, `PascalCase` types, `kebab-case` assets.
+- Avoid unused locals/params (TS strict).
+- No formatter configured — keep changes minimal.
 
-## Time Estimate (Solo)
-- Minimal working version: 8–12 work days.
-- Stable version with detectors and indexing: 12–18 work days.
-- If the openings database is missing or needs manual curation: +5–15 work days.
+## Full Work Plan (detailed)
+1. Tooling baseline
+   - Ensure Vite + TS strict builds clean.
+   - Verify multi-entry build for popup/options/panel/background/content.
 
-## Risks & Assumptions
-- Site DOM changes can break detectors.
-- Large openings database requires indexing/optimization.
-- Analytics and commentary require a later milestone.
+2. Extension scaffolding
+   - MV3 `manifest.json` includes action popup, options, side panel, background, content scripts, icons.
+   - Build emits `background.js` and `content.js` alongside HTML entries.
+
+3. Background service worker
+   - Wire `runtime.onMessage` and storage helpers.
+   - Add basic logging and health/ping.
+
+4. Content scripts
+   - Implement `detectPosition` for chess.com + lichess.org.
+   - Normalize moves / FEN extraction.
+   - Send position snapshots to background/UI.
+
+5. Domain layer
+   - Define `Opening` schema and enums.
+   - Load JSON data, validate shape.
+   - Implement search (name/ECO/tags).
+   - Implement filters (rating/type/difficulty/tags).
+   - Implement recommendations by move-prefix.
+
+6. Data/index
+   - Build `openings.index.json` for fast lookup.
+   - Add fallback to full scan if index missing.
+
+7. UI integration
+   - Connect UI to store/state, wire filters & favorites.
+   - Connect to background messages (position updates).
+   - Ensure popup/panel/options render correct pages.
+
+8. UX polish
+   - Cards, badges, quick actions, loading/empty states.
+   - Performance: memoize filters, cache by position.
+
+9. Storage
+   - `FavoritesRepo` add/remove/list.
+   - `SettingsRepo` with defaults + migration stub.
+
+10. Testing & stabilization
+   - Manual testing on chess.com + lichess.
+   - Fix DOM breakages, edge cases.
+   - Optional tests + add `npm run test`.
+
+11. Packaging
+   - `npm run build` and verify `dist/`.
+   - Document installation in README.
+
+## Current Known State / Caveats
+- UI is mocked with local data in `src/lib/chess-data.ts`.
+- Position detection is stubbed (`detectPosition` returns null).
+- Favorites/settings storage not fully wired to UI yet.
+- React is pinned to 18 for dependency compatibility.
+
+## Agent Notes
+- Prefer `rg` for search.
+- Prefer `apply_patch` for single-file edits.
+- Avoid deleting or reformatting unrelated files.
