@@ -1,0 +1,35 @@
+# macOS
+.DS_Store
+
+# Node
+node_modules/
+pnpm-lock.yaml
+package-lock.json
+yarn.lock
+npm-debug.log
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info
+
+# Visual Studio Code
+.vscode/
+
+# Logs
+logs/
+*.log
+
+# Build
+dist/
+build/
+
+# Temp files
+*.tmp
+*.swp
+
+# Coverage
+coverage/
+
+# Environment
+.env

@@ -1,0 +1,148 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+}
+
+@layer base {
+  :root {
+    --font-geist-sans: "Inter", "Segoe UI", system-ui, sans-serif;
+    --font-geist-mono: "SFMono-Regular", ui-monospace, monospace;
+    --background: 230 25% 7%;
+    --foreground: 45 20% 95%;
+    --card: 230 22% 10%;
+    --card-foreground: 45 20% 95%;
+    --popover: 230 22% 10%;
+    --popover-foreground: 45 20% 95%;
+    --primary: 38 95% 56%;
+    --primary-foreground: 230 25% 5%;
+    --secondary: 230 18% 15%;
+    --secondary-foreground: 45 15% 82%;
+    --muted: 230 18% 13%;
+    --muted-foreground: 230 12% 48%;
+    --accent: 168 60% 48%;
+    --accent-foreground: 230 25% 5%;
+    --destructive: 0 72% 52%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 230 18% 17%;
+    --input: 230 18% 17%;
+    --ring: 38 95% 56%;
+    --chart-1: 38 95% 56%;
+    --chart-2: 168 60% 48%;
+    --chart-3: 0 72% 52%;
+    --chart-4: 45 90% 58%;
+    --chart-5: 200 70% 55%;
+    --radius: 0.75rem;
+    --sidebar-background: 230 25% 5%;
+    --sidebar-foreground: 45 15% 82%;
+    --sidebar-primary: 38 95% 56%;
+    --sidebar-primary-foreground: 230 25% 5%;
+    --sidebar-accent: 230 18% 13%;
+    --sidebar-accent-foreground: 45 15% 82%;
+    --sidebar-border: 230 18% 15%;
+    --sidebar-ring: 38 95% 56%;
+
+    --amber: 38 95% 56%;
+    --amber-foreground: 230 25% 5%;
+    --amber-muted: 38 50% 20%;
+    --emerald: 168 60% 48%;
+    --emerald-foreground: 230 25% 5%;
+    --sky: 200 70% 55%;
+    --sky-foreground: 230 25% 5%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-family: var(--font-geist-sans);
+  }
+}
+
+/* Pulsating glow ring for the launch button */
+@keyframes pulse-ring {
+  0% { transform: scale(0.95); opacity: 0.5; }
+  50% { transform: scale(1.05); opacity: 0.2; }
+  100% { transform: scale(0.95); opacity: 0.5; }
+}
+@keyframes pulse-ring-2 {
+  0% { transform: scale(1); opacity: 0.3; }
+  50% { transform: scale(1.12); opacity: 0.1; }
+  100% { transform: scale(1); opacity: 0.3; }
+}
+@keyframes spin-slow {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+@keyframes icon-burst {
+  0% { transform: translate(0, 0) scale(1); opacity: 1; }
+  100% { opacity: 0; }
+}
+@keyframes fade-in-up {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+@keyframes glow-breathe {
+  0%, 100% { box-shadow: 0 0 30px -8px hsl(38 95% 56% / 0.3), 0 0 60px -15px hsl(38 95% 56% / 0.15); }
+  50% { box-shadow: 0 0 45px -5px hsl(38 95% 56% / 0.45), 0 0 80px -10px hsl(38 95% 56% / 0.25); }
+}
+@keyframes status-dot {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+.animate-pulse-ring {
+  animation: pulse-ring 2.5s ease-in-out infinite;
+}
+.animate-pulse-ring-2 {
+  animation: pulse-ring-2 3s ease-in-out infinite;
+}
+.animate-spin-slow {
+  animation: spin-slow 20s linear infinite;
+}
+.animate-float {
+  animation: float 3s ease-in-out infinite;
+}
+.animate-fade-in-up {
+  animation: fade-in-up 0.4s ease-out forwards;
+}
+.animate-shimmer {
+  background-size: 200% 100%;
+  animation: shimmer 2s linear infinite;
+}
+.animate-glow-breathe {
+  animation: glow-breathe 3s ease-in-out infinite;
+}
+.animate-status-dot {
+  animation: status-dot 1.5s ease-in-out infinite;
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 4px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: hsl(230 18% 22%);
+  border-radius: 2px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: hsl(230 18% 30%);
+}
