@@ -5,8 +5,6 @@ const config: Config = {
   content: [
     './index.html',
     './popup.html',
-    './panel.html',
-    './options.html',
     './src/**/*.{js,ts,jsx,tsx}'
   ],
   theme: {

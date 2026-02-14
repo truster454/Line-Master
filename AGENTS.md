@@ -12,18 +12,16 @@ This file is for me (the agent). It should be enough to understand the repo with
 - `src/content/`: content scripts for chess.com / lichess.org.
 - `src/shared/`: shared types, constants, logger.
 - `src/core/`: domain logic (openings, filters, recommenders, formatters).
-- `src/data/`: bundled JSON (`openings.json`, `openings.index.json`).
+- `src/data/`: bundled JSON (`openings.json`, `openings.index.json`, `books.index.json`).
 - `src/components/`, `src/hooks/`, `src/lib/`: UI code (migrated from Next.js).
-- `src/ui/`: extension surface entrypoints (popup/panel/options) + styles.
-- `public/`: static assets, icons, `manifest.json`.
+- `src/ui/`: extension popup entrypoint + styles.
+- `public/`: static assets, icons, `manifest.json`, opening books in `public/books/*.bin`.
 
 ### Entry Points
 - Popup: `popup.html` → `src/ui/popup/main.tsx`.
-- Panel: `panel.html` → `src/ui/panel/main.tsx`.
-- Options: `options.html` → `src/ui/options/main.tsx`.
 - Background: `src/background/index.ts` (built as `background.js`).
 - Content: `src/content/index.ts` (built as `content.js`).
-- Dev hub: `index.html` (links to popup/panel/options).
+- `index.html` redirects to `popup.html`.
 
 ### Configs
 - `vite.config.ts`: multi-entry build, `@` alias to `src`.
@@ -45,7 +43,7 @@ This file is for me (the agent). It should be enough to understand the repo with
 - Chrome extension: opening database, search, filters, favorites, position recommendations.
 - Sources: chess.com + lichess.org (content scripts).
 - Storage: `chrome.storage` for favorites + settings.
-- Surfaces: popup, side panel, options.
+- Surface: popup only (no side panel/options).
 
 ## Core Interfaces (contracts)
 - `src/core/openings/index.ts`: `OpeningsService` with `search`, `recommendByPosition`, `getById`, `listAll`.
@@ -60,14 +58,14 @@ This file is for me (the agent). It should be enough to understand the repo with
 - Avoid unused locals/params (TS strict).
 - No formatter configured — keep changes minimal.
 
-## Full Work Plan (detailed)
+## Full Work Plan (detailed, historical)
 1. Tooling baseline
    - Ensure Vite + TS strict builds clean.
    - Verify multi-entry build for popup/options/panel/background/content.
 
 2. Extension scaffolding
-   - MV3 `manifest.json` includes action popup, options, side panel, background, content scripts, icons.
-   - Build emits `background.js` and `content.js` alongside HTML entries.
+   - MV3 `manifest.json` includes action popup, background, content scripts, icons.
+   - Build emits `background.js`, `content.js`, and popup HTML/JS.
 
 3. Background service worker
    - Wire `runtime.onMessage` and storage helpers.
@@ -92,7 +90,7 @@ This file is for me (the agent). It should be enough to understand the repo with
 7. UI integration
    - Connect UI to store/state, wire filters & favorites.
    - Connect to background messages (position updates).
-   - Ensure popup/panel/options render correct pages.
+   - Ensure popup renders correctly.
 
 8. UX polish
    - Cards, badges, quick actions, loading/empty states.
@@ -116,6 +114,56 @@ This file is for me (the agent). It should be enough to understand the repo with
 - Position detection is stubbed (`detectPosition` returns null).
 - Favorites/settings storage not fully wired to UI yet.
 - React is pinned to 18 for dependency compatibility.
+
+## Completed Work (2026-02-14)
+### 1) Popup-only architecture
+- Removed side panel/options from manifest:
+  - deleted `options_ui` and `side_panel` from `public/manifest.json`.
+- Removed side panel/options from build inputs in `vite.config.ts`.
+- Deleted unused entry files:
+  - `panel.html`, `options.html`
+  - `src/ui/panel/main.tsx`, `src/ui/panel/Panel.tsx`
+  - `src/ui/options/main.tsx`, `src/ui/options/Options.tsx`
+- Updated dev entry:
+  - `index.html` now redirects to `popup.html`.
+- Updated Tailwind content list:
+  - removed references to `panel.html` and `options.html`.
+
+### 2) TypeScript build fixes
+- Fixed strict TS errors in UI files (unused vars/imports, type-only imports):
+  - `src/components/home-screen.tsx`
+  - `src/components/popup-library.tsx`
+  - `src/components/popup-settings.tsx`
+  - `src/components/theme-provider.tsx`
+  - `src/components/ui/calendar.tsx`
+  - `src/components/ui/form.tsx`
+  - `src/components/ui/pagination.tsx`
+  - `src/components/ui/sidebar.tsx`
+- Build status: `npm run build` passes.
+
+### 3) Opening books (.bin) integration foundation
+- Books are stored in: `public/books/*.bin`.
+- Added web access for books in extension:
+  - `public/manifest.json` → `web_accessible_resources` with `books/*.bin`.
+- Added auto-generated books index:
+  - `src/data/books.index.json` (`openingId -> books/<file>.bin`).
+- Added `BookService`:
+  - `src/core/books/service.ts`
+  - supports listing books, resolving book path by opening id/name, loading `.bin` via `chrome.runtime.getURL`, and in-memory cache.
+- Extended `OpeningsService`:
+  - `src/core/openings/index.ts`
+  - added `recommendByPositionWithBooks`, `loadBookForOpeningId`, `loadBookForOpening`, `listBooks`.
+
+### 4) Popup sizing
+- Updated popup container to extension-like dimensions:
+  - `src/ui/popup/Popup.tsx` uses fixed `380x560` container instead of full-screen layout.
+
+### 5) Important remaining gaps
+- `src/data/openings.json` is currently empty (`[]`), so opening recommendations from core data are limited.
+- Position detectors are still stubs:
+  - `src/content/detectors/chesscom.ts`
+  - `src/content/detectors/lichess.ts`
+- Book move extraction from `.bin` by FEN/Polyglot key is not implemented yet (only loading/indexing is done).
 
 ## Agent Notes
 - Prefer `rg` for search.

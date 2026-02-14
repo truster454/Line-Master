@@ -13,11 +13,7 @@ import {
 } from "@/lib/chess-data";
 import { Search, ChevronRight, Star, ArrowLeft } from "lucide-react";
 
-interface PopupLibraryProps {
-  onNavigateToCategories?: () => void;
-}
-
-export function PopupLibrary({ onNavigateToCategories }: PopupLibraryProps) {
+export function PopupLibrary() {
   const [openingsData, setOpeningsData] = useState(allOpenings);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<OpeningCategory | null>(null);

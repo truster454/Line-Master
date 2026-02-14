@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { type RatingRange, ratingLabels } from "@/lib/chess-data";
-import { ChevronRight, Globe, Zap, Eye, Info } from "lucide-react";
+import { ChevronRight, Globe, Eye, Info } from "lucide-react";
 
 export function PopupSettings() {
   const [autoDetect, setAutoDetect] = useState(true);

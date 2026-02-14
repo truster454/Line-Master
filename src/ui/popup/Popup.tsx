@@ -12,7 +12,7 @@ export function Popup() {
 
   return (
     <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false}>
-      <div className="flex items-center justify-center min-h-screen p-4">
+      <div className="w-[380px] h-[560px] overflow-hidden bg-background">
         <PopupShell activePage={activePage} onNavigate={setActivePage}>
           {activePage === 'home' && <HomeScreen />}
           {activePage === 'library' && <PopupLibrary />}

@@ -33,8 +33,8 @@ interface BurstParticle {
 export function HomeScreen() {
   const [isActive, setIsActive] = useState(false);
   const [particles, setParticles] = useState<BurstParticle[]>([]);
-  const [gameDetected, setGameDetected] = useState(true);
-  const [rating, setRating] = useState(1247);
+  const [gameDetected] = useState(true);
+  const [rating] = useState(1247);
   const particleCounter = useRef(0);
 
   const emitParticles = useCallback(() => {
