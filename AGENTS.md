@@ -165,6 +165,62 @@ This file is for me (the agent). It should be enough to understand the repo with
   - `src/content/detectors/lichess.ts`
 - Book move extraction from `.bin` by FEN/Polyglot key is not implemented yet (only loading/indexing is done).
 
+## Completed Work (2026-02-15)
+### 1) Real Polyglot lookup from `.bin`
+- Implemented full `.bin` lookup pipeline in `src/core/books/service.ts`:
+  - FEN parsing and Polyglot key generation (including castling/en-passant handling).
+  - Binary search by key in Polyglot book records.
+  - Decoding moves to UCI and selecting candidates by weight.
+  - Lookup across all books (`lookupAllByFen`) for aggregated theory moves.
+- Added Polyglot random table in `src/core/books/polyglot-random.ts`.
+
+### 2) Real openings data and index
+- Filled `src/data/openings.json` with real entries matched to existing books.
+- Rebuilt `src/data/openings.index.json`.
+- `openings.json` now includes metadata and preview moves for library cards; recommendation logic is based on `.bin` lookup, not these preview lines.
+
+### 3) Position detection on chess.com/lichess
+- Implemented detectors:
+  - `src/content/detectors/chesscom.ts`
+  - `src/content/detectors/lichess.ts`
+- Added move normalization in `src/content/normalize.ts`.
+- Added FEN validation in `src/content/fen-utils.ts`.
+- Added board-based FEN fallback reconstruction in `src/content/fen-from-board.ts` when site FEN is missing/invalid.
+
+### 4) End-to-end flow (`content -> background -> popup`)
+- `src/content/index.ts` now continuously reports position updates (observer + polling) and listens for state updates.
+- `src/background/index.ts` now:
+  - stores latest position insight,
+  - computes aggregated theoretical moves from all matching books,
+  - exposes `position:get`,
+  - broadcasts `position:state`,
+  - handles favorites API (`favorites:list/add/remove`).
+
+### 5) On-board move overlay
+- Added SVG overlay renderer in `src/content/overlay.ts`:
+  - draws line from source square to target square,
+  - draws target circle,
+  - supports rendering all theoretical moves,
+  - uses reduced size/transparency for minimal board obstruction,
+  - auto-refreshes on resize/scroll.
+
+### 6) Launch-gated hints (show only after pressing “Запустить”)
+- Added `hintsEnabled` state in `PositionInsight` (`src/shared/types.ts`).
+- Added background message handlers:
+  - `hints:get`
+  - `hints:set`
+  with persistence in `chrome.storage.local`.
+- `src/components/home-screen.tsx` button “Запустить” now toggles hints.
+- `src/content/overlay.ts` clears overlay when `hintsEnabled === false`.
+- `src/content/index.ts` periodically syncs `hints:get` to ensure immediate overlay toggle even when position does not change.
+
+### 7) Popup UI state
+- Popup pages were temporarily migrated to core-driven minimal views, then reverted to the original visual design per user request.
+- Current state:
+  - original popup visual style is retained,
+  - home screen includes an additional bottom data block with live position/book details,
+  - functional backend/content pipeline remains active.
+
 ## Agent Notes
 - Prefer `rg` for search.
 - Prefer `apply_patch` for single-file edits.

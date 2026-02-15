@@ -6,7 +6,7 @@ export interface Opening {
   id: string
   name: string
   eco?: string
-  moves: string[]
+  moves?: string[]
   tags?: string[]
   type?: OpeningType
   difficulty?: Difficulty

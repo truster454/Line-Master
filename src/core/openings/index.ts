@@ -1,9 +1,9 @@
 import openingsData from '../../data/openings.json'
-import type { Opening } from './schema'
 import type { PositionSnapshot } from '../../shared/types'
-import { applyOpeningsFilters } from './filters'
-import { rankByMovePrefix } from './recommend'
+import type { BookLookupHit } from '../books/service'
 import { BookService } from '../books/service'
+import { applyOpeningsFilters } from './filters'
+import type { Opening } from './schema'
 
 const openings = openingsData as Opening[]
 const bookService = new BookService()
@@ -24,7 +24,7 @@ export class OpeningsService {
     }
 
     return openings.filter((opening) => {
-      const haystack = [opening.name, opening.eco, ...(opening.tags ?? [])]
+      const haystack = [opening.id, opening.name, opening.eco, ...(opening.tags ?? [])]
         .filter(Boolean)
         .join(' ')
         .toLowerCase()
@@ -32,28 +32,20 @@ export class OpeningsService {
     })
   }
 
+  // Metadata hint only; actual move choice comes from bin lookup by FEN.
   recommendByPosition(snapshot: PositionSnapshot | null): Opening[] {
-    if (!snapshot) {
+    if (!snapshot?.fen) {
       return []
     }
-    const ranked = rankByMovePrefix(openings, snapshot.moves)
-    return ranked.slice(0, 10).map((result) => result.opening)
+    return openings.filter((opening) => bookService.resolveBookPathForOpening(opening) !== null)
   }
 
-  recommendByPositionWithBooks(snapshot: PositionSnapshot | null): Array<{
-    opening: Opening
-    bookPath: string | null
-    hasBook: boolean
-  }> {
-    const recommended = this.recommendByPosition(snapshot)
-    return recommended.map((opening) => {
-      const bookPath = bookService.resolveBookPathForOpening(opening)
-      return {
-        opening,
-        bookPath,
-        hasBook: bookPath !== null
-      }
-    })
+  async lookupAllBooksByFen(fen: string): Promise<Array<BookLookupHit & { opening?: Opening }>> {
+    const hits = await bookService.lookupAllByFen(fen)
+    return hits.map((hit) => ({
+      ...hit,
+      opening: this.getById(hit.openingId)
+    }))
   }
 
   async loadBookForOpeningId(openingId: string) {

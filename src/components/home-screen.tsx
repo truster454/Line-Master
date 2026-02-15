@@ -5,6 +5,7 @@ import { cn } from "@/lib/utils";
 import { KingIcon } from "./chess-icons";
 import { Wifi, WifiOff } from "lucide-react";
 import { BurstIcon } from "./burst-icon"; // Import BurstIcon
+import type { PositionInsight } from "@/shared/types";
 
 // Chess move classification icons from the user's images
 const CLASSIFICATION_ICONS = [
@@ -33,9 +34,17 @@ interface BurstParticle {
 export function HomeScreen() {
   const [isActive, setIsActive] = useState(false);
   const [particles, setParticles] = useState<BurstParticle[]>([]);
-  const [gameDetected] = useState(true);
+  const [gameDetected, setGameDetected] = useState(true);
   const [rating] = useState(1247);
   const particleCounter = useRef(0);
+  const [insight, setInsight] = useState<PositionInsight>({
+    snapshot: null,
+    theoreticalMoves: [],
+    matchedBooks: 0,
+    hintsEnabled: false,
+    bookStatus: "position-not-detected",
+    updatedAt: Date.now(),
+  });
 
   const emitParticles = useCallback(() => {
     const count = 1; // fewer particles at a time
@@ -79,7 +88,12 @@ export function HomeScreen() {
   }, [isActive, emitParticles]);
 
   const handleLaunch = () => {
-    setIsActive((prev) => !prev);
+    const runtime = globalThis.chrome?.runtime;
+    const next = !isActive;
+    setIsActive(next);
+
+    if (!runtime?.sendMessage) return;
+    runtime.sendMessage({ type: "hints:set", payload: { enabled: next } });
   };
 
   // Floating ambient particles behind the button
@@ -99,8 +113,40 @@ export function HomeScreen() {
     setAmbientDots(dots);
   }, []);
 
+  useEffect(() => {
+    const runtime = globalThis.chrome?.runtime;
+    if (!runtime?.sendMessage) return;
+
+    runtime.sendMessage({ type: "hints:get" }, (response) => {
+      if (response?.ok) {
+        setIsActive(Boolean(response.payload));
+      }
+    });
+
+    runtime.sendMessage({ type: "position:get" }, (response) => {
+      if (response?.ok && response.payload) {
+        const payload = response.payload as PositionInsight;
+        setInsight(payload);
+        setGameDetected(Boolean(payload.snapshot));
+        setIsActive(Boolean(payload.hintsEnabled));
+      }
+    });
+
+    const handler = (message: unknown) => {
+      const payload = message as { type?: string; payload?: PositionInsight };
+      if (payload.type === "position:state" && payload.payload) {
+        setInsight(payload.payload);
+        setGameDetected(Boolean(payload.payload.snapshot));
+        setIsActive(Boolean(payload.payload.hintsEnabled));
+      }
+    };
+
+    runtime.onMessage.addListener(handler);
+    return () => runtime.onMessage.removeListener(handler);
+  }, []);
+
   return (
-    <div className="flex flex-col items-center justify-center h-full relative px-6">
+    <div className="flex flex-col items-center justify-start h-full relative px-6 pt-4 pb-24 overflow-y-auto">
       {/* Decorative background elements */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         {/* Radial glow behind button */}
@@ -290,6 +336,30 @@ export function HomeScreen() {
             <span className="text-[9px] text-muted-foreground uppercase tracking-wider">Диапазон</span>
             <span className="text-xs font-semibold text-primary">1000-1300</span>
           </div>
+        </div>
+      </div>
+
+      <div className="w-full mt-6 mb-2 p-3 rounded-xl bg-card/90 border border-border/60 relative z-10">
+        <div className="flex items-center justify-between mb-2">
+          <span className="text-[10px] uppercase tracking-wider text-muted-foreground">Текущая позиция</span>
+          <span className="text-[10px] text-muted-foreground">{insight.snapshot?.source ?? "n/a"}</span>
+        </div>
+        <p className="text-[11px] font-mono text-muted-foreground break-all">{insight.snapshot?.fen ?? "FEN: n/a"}</p>
+        <p className="text-[11px] mt-2 text-muted-foreground">
+          Дебют: {insight.openingName ? `${insight.openingName}${insight.openingEco ? ` (${insight.openingEco})` : ""}` : "не определен"}
+        </p>
+        <p className="text-[11px] text-muted-foreground">Книг с совпадением: {insight.matchedBooks}</p>
+        <p className="text-[11px] text-muted-foreground">Статус: {insight.bookStatus}</p>
+        <div className="mt-2 max-h-20 overflow-auto space-y-1">
+          {insight.theoreticalMoves.slice(0, 6).map((entry) => (
+            <div key={entry.uci} className="text-[11px] font-mono flex items-center justify-between">
+              <span>{entry.uci}</span>
+              <span className="text-muted-foreground">w={entry.totalWeight} • b={entry.booksCount}</span>
+            </div>
+          ))}
+          {insight.theoreticalMoves.length === 0 && (
+            <p className="text-[11px] text-muted-foreground">Ходов нет</p>
+          )}
         </div>
       </div>
     </div>

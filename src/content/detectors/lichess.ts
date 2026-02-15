@@ -1,5 +1,84 @@
 import type { PositionSnapshot } from '../../shared/types'
+import { normalizeMoveList } from '../normalize'
+import { buildFenFromLichessBoard } from '../fen-from-board'
+import { isValidFen } from '../fen-utils'
+
+const FEN_PATTERN = /([pnbrqkPNBRQK1-8]{1,8}(?:\/[pnbrqkPNBRQK1-8]{1,8}){7}\s[wb]\s(?:K?Q?k?q?|-)\s(?:[a-h][36]|-)\s\d+\s\d+)/
+
+function extractFenFromText(text: string): string | null {
+  const match = text.match(FEN_PATTERN)
+  if (!match) {
+    return null
+  }
+  return isValidFen(match[1]) ? match[1] : null
+}
+
+function extractFenFromDom(): string | undefined {
+  const attrSelectors = ['cg-board', '[data-fen]', '.analyse__board']
+  for (const selector of attrSelectors) {
+    const node = document.querySelector<HTMLElement>(selector)
+    const fen = node?.getAttribute('fen') ?? node?.getAttribute('data-fen')
+    if (fen && extractFenFromText(fen)) {
+      return fen
+    }
+  }
+
+  const scripts = Array.from(document.querySelectorAll('script:not([src])')).slice(0, 80)
+  for (const script of scripts) {
+    const text = script.textContent
+    if (!text || !text.includes('fen')) {
+      continue
+    }
+    const fen = extractFenFromText(text)
+    if (fen) {
+      return fen
+    }
+  }
+
+  return undefined
+}
+
+function extractMovesFromDom(): string[] {
+  const selectors = [
+    '.analyse__moves move',
+    '.game__moves move',
+    '.rmoves move',
+    '.moves .move'
+  ]
+
+  const rawMoves: string[] = []
+  for (const selector of selectors) {
+    const elements = document.querySelectorAll<HTMLElement>(selector)
+    if (elements.length === 0) {
+      continue
+    }
+    for (const element of elements) {
+      const text = element.textContent?.trim()
+      if (text) {
+        rawMoves.push(text)
+      }
+    }
+    if (rawMoves.length > 0) {
+      break
+    }
+  }
+
+  return normalizeMoveList(rawMoves)
+}
 
 export async function detectLichess(): Promise<PositionSnapshot | null> {
-  return null
+  const moves = extractMovesFromDom()
+  const boardFen = buildFenFromLichessBoard(moves.length)
+  const fen = extractFenFromDom() ?? (boardFen && isValidFen(boardFen) ? boardFen : undefined)
+
+  if (moves.length === 0 && !fen) {
+    return null
+  }
+
+  return {
+    source: 'lichess',
+    fen,
+    moves,
+    url: window.location.href
+  }
 }

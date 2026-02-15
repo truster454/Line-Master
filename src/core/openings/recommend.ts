@@ -13,8 +13,9 @@ export function rankByMovePrefix(openings: Opening[], moves: string[]): Recommen
 
   return openings
     .map((opening) => {
+      const openingMoves = opening.moves ?? []
       const depth = moves.reduce((count, move, index) => {
-        if (opening.moves[index] === move) {
+        if (openingMoves[index] === move) {
           return count + 1
         }
         return count
@@ -22,7 +23,7 @@ export function rankByMovePrefix(openings: Opening[], moves: string[]): Recommen
       return {
         opening,
         depth,
-        score: depth * 10 + opening.moves.length
+        score: depth * 10 + openingMoves.length
       }
     })
     .filter((result) => result.depth > 0)

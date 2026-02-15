@@ -15,7 +15,7 @@ export function OpeningCard({ opening }: OpeningCardProps) {
         </div>
         <DifficultyBadge difficulty={opening.difficulty} />
       </div>
-      <p className="muted">Moves: {opening.moves.join(' ') || 'n/a'}</p>
+      <p className="muted">Moves: {opening.moves?.join(' ') || 'n/a'}</p>
     </div>
   )
 }
