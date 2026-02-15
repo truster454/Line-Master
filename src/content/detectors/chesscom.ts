@@ -4,6 +4,11 @@ import { buildFenFromChessComBoard } from '../fen-from-board'
 import { isValidFen } from '../fen-utils'
 
 const FEN_PATTERN = /([pnbrqkPNBRQK1-8]{1,8}(?:\/[pnbrqkPNBRQK1-8]{1,8}){7}\s[wb]\s(?:K?Q?k?q?|-)\s(?:[a-h][36]|-)\s\d+\s\d+)/
+const SCRIPT_SCAN_INTERVAL_MS = 5000
+
+let lastScriptScanAt = 0
+let cachedScriptFen: string | undefined
+let cachedHref = ''
 
 function extractFenFromText(text: string): string | null {
   const match = text.match(FEN_PATTERN)
@@ -14,6 +19,12 @@ function extractFenFromText(text: string): string | null {
 }
 
 function extractFenFromDom(): string | undefined {
+  if (cachedHref !== window.location.href) {
+    cachedHref = window.location.href
+    cachedScriptFen = undefined
+    lastScriptScanAt = 0
+  }
+
   const attrSelectors = [
     '[data-fen]',
     'chess-board[data-fen]',
@@ -29,6 +40,12 @@ function extractFenFromDom(): string | undefined {
     }
   }
 
+  const now = Date.now()
+  if (now - lastScriptScanAt < SCRIPT_SCAN_INTERVAL_MS) {
+    return cachedScriptFen
+  }
+  lastScriptScanAt = now
+
   const scripts = Array.from(document.querySelectorAll('script:not([src])')).slice(0, 60)
   for (const script of scripts) {
     const text = script.textContent
@@ -37,10 +54,12 @@ function extractFenFromDom(): string | undefined {
     }
     const fen = extractFenFromText(text)
     if (fen) {
+      cachedScriptFen = fen
       return fen
     }
   }
 
+  cachedScriptFen = undefined
   return undefined
 }
 
@@ -74,8 +93,9 @@ function extractMovesFromDom(): string[] {
 
 export async function detectChessCom(): Promise<PositionSnapshot | null> {
   const moves = extractMovesFromDom()
-  const boardFen = buildFenFromChessComBoard(moves.length)
-  const fen = extractFenFromDom() ?? (boardFen && isValidFen(boardFen) ? boardFen : undefined)
+  const domFen = extractFenFromDom()
+  const boardFen = domFen ? undefined : buildFenFromChessComBoard(moves.length)
+  const fen = domFen ?? (boardFen && isValidFen(boardFen) ? boardFen : undefined)
 
   if (moves.length === 0 && !fen) {
     return null

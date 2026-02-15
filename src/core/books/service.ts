@@ -46,6 +46,7 @@ export interface BookLookupHit {
 }
 
 const BOOK_ENTRY_SIZE = 16
+const LOOKUP_CACHE_MAX = 256
 // Polyglot piece ordering follows python-chess/chess-polyglot:
 // black, white for each piece type (pawn, knight, bishop, rook, queen, king).
 const PIECE_TO_INDEX: Record<Piece, number> = {
@@ -274,10 +275,12 @@ function readMovesForKey(book: LoadedBook, targetKey: bigint): BookMove[] {
 }
 
 export class BookService {
+  private readonly booksList: BookInfo[] = Object.entries(booksIndex).map(([id, path]) => ({ id, path }))
   private readonly loadCache = new Map<string, Promise<LoadedBook | null>>()
+  private readonly lookupAllCache = new Map<string, BookLookupHit[]>()
 
   listBooks(): BookInfo[] {
-    return Object.entries(booksIndex).map(([id, path]) => ({ id, path }))
+    return this.booksList
   }
 
   resolveBookPath(openingId: string): string | null {
@@ -327,7 +330,7 @@ export class BookService {
       return null
     }
 
-    const best = [...candidates].sort((a, b) => b.weight - a.weight)[0]
+    const best = candidates.reduce((current, next) => (next.weight > current.weight ? next : current), candidates[0])
     return {
       key: `0x${key.toString(16).padStart(16, '0')}`,
       total: candidates.length,
@@ -350,8 +353,14 @@ export class BookService {
       return []
     }
 
+    const cacheKey = key.toString(16).padStart(16, '0')
+    const cached = this.lookupAllCache.get(cacheKey)
+    if (cached) {
+      return cached
+    }
+
     const hits: BookLookupHit[] = []
-    const books = this.listBooks()
+    const books = this.booksList
 
     await Promise.all(
       books.map(async ({ id, path }) => {
@@ -371,7 +380,17 @@ export class BookService {
       })
     )
 
-    return hits.sort((a, b) => b.lookup.best.weight - a.lookup.best.weight)
+    const sorted = hits.sort((a, b) => b.lookup.best.weight - a.lookup.best.weight)
+    this.lookupAllCache.set(cacheKey, sorted)
+
+    if (this.lookupAllCache.size > LOOKUP_CACHE_MAX) {
+      const oldestKey = this.lookupAllCache.keys().next().value
+      if (oldestKey) {
+        this.lookupAllCache.delete(oldestKey)
+      }
+    }
+
+    return sorted
   }
 
   private loadBookByPath(openingId: string, path: string): Promise<LoadedBook | null> {
