@@ -1,8 +1,12 @@
 import type { PositionInsight } from '../shared/types'
 
 const OVERLAY_ID = 'line-master-board-overlay'
+const MOVE_COLORS = ['#2563eb', '#dc2626', '#16a34a']
 
 let lastMoves: string[] = []
+let lastMovesKey = ''
+let lastDrawKey = ''
+let rerenderScheduled = false
 
 function parseSquare(square: string): { file: number; rank: number } | null {
   if (!/^[a-h][1-8]$/.test(square)) {
@@ -100,6 +104,11 @@ function clearOverlay(): void {
   if (overlay) {
     overlay.remove()
   }
+  lastDrawKey = ''
+}
+
+function geometryKey(rect: DOMRect, flipped: boolean): string {
+  return `${rect.left.toFixed(1)}|${rect.top.toFixed(1)}|${rect.width.toFixed(1)}|${rect.height.toFixed(1)}|${flipped ? 1 : 0}`
 }
 
 function drawMoves(uciMoves: string[]): void {
@@ -116,45 +125,107 @@ function drawMoves(uciMoves: string[]): void {
   }
 
   const flipped = isFlipped(board)
+  const drawKey = `${uciMoves.join(',')}|${geometryKey(rect, flipped)}`
+  if (drawKey === lastDrawKey) {
+    return
+  }
+  lastDrawKey = drawKey
+
   const overlay = ensureOverlay(rect)
   overlay.innerHTML = ''
 
   const strokeWidth = Math.max(1.5, rect.width * 0.0055)
-  const targetRadius = Math.max(6, rect.width * 0.028)
+  const targetRadius = Math.max(8, rect.width * 0.03)
+  const fontSize = Math.max(10, rect.width * 0.028)
+  const labelStrokeWidth = Math.max(1, rect.width * 0.003)
+  const cellSize = rect.width / 8
 
-  for (let index = 0; index < uciMoves.length; index += 1) {
-    const parsed = parseUci(uciMoves[index])
-    if (!parsed) {
+  const parsedMoves = uciMoves
+    .map((uci, index) => {
+      const parsed = parseUci(uci)
+      if (!parsed) {
+        return null
+      }
+      return {
+        index,
+        rank: index + 1,
+        uci,
+        from: parsed.from,
+        to: parsed.to
+      }
+    })
+    .filter((entry): entry is NonNullable<typeof entry> => entry !== null)
+
+  const byTargetSquare = new Map<string, number[]>()
+  for (const move of parsedMoves) {
+    const list = byTargetSquare.get(move.to) ?? []
+    list.push(move.index)
+    byTargetSquare.set(move.to, list)
+  }
+
+  const labelOffsets = new Map<number, { x: number; y: number }>()
+  for (const [, indexes] of byTargetSquare) {
+    if (indexes.length === 1) {
+      labelOffsets.set(indexes[0], { x: 0, y: 0 })
       continue
     }
 
-    const from = squareCenter(parsed.from, rect, flipped)
-    const to = squareCenter(parsed.to, rect, flipped)
+    const spread = Math.min(cellSize * 0.22, targetRadius * 1.45)
+    for (let i = 0; i < indexes.length; i += 1) {
+      const angle = -Math.PI / 2 + (2 * Math.PI * i) / indexes.length
+      labelOffsets.set(indexes[i], {
+        x: Math.cos(angle) * spread,
+        y: Math.sin(angle) * spread
+      })
+    }
+  }
+
+  for (const move of parsedMoves) {
+    const from = squareCenter(move.from, rect, flipped)
+    const to = squareCenter(move.to, rect, flipped)
     if (!from || !to) {
       continue
     }
+    const color = MOVE_COLORS[move.index % MOVE_COLORS.length]
+    const offset = labelOffsets.get(move.index) ?? { x: 0, y: 0 }
+    const labelX = to.x + offset.x
+    const labelY = to.y + offset.y
 
     const line = document.createElementNS('http://www.w3.org/2000/svg', 'line')
     line.setAttribute('x1', from.x.toString())
     line.setAttribute('y1', from.y.toString())
     line.setAttribute('x2', to.x.toString())
     line.setAttribute('y2', to.y.toString())
-    line.setAttribute('stroke', '#1f2937')
+    line.setAttribute('stroke', color)
     line.setAttribute('stroke-width', strokeWidth.toString())
     line.setAttribute('stroke-linecap', 'round')
-    line.setAttribute('opacity', Math.max(0.12, 0.45 - index * 0.05).toString())
+    line.setAttribute('opacity', Math.max(0.2, 0.75 - move.index * 0.06).toString())
 
     const target = document.createElementNS('http://www.w3.org/2000/svg', 'circle')
-    target.setAttribute('cx', to.x.toString())
-    target.setAttribute('cy', to.y.toString())
+    target.setAttribute('cx', labelX.toString())
+    target.setAttribute('cy', labelY.toString())
     target.setAttribute('r', targetRadius.toString())
-    target.setAttribute('fill', '#f8fafc')
-    target.setAttribute('stroke', '#1f2937')
+    target.setAttribute('fill', '#ffffff')
+    target.setAttribute('stroke', color)
     target.setAttribute('stroke-width', Math.max(1.25, rect.width * 0.0035).toString())
-    target.setAttribute('opacity', Math.max(0.14, 0.5 - index * 0.05).toString())
+    target.setAttribute('opacity', Math.max(0.3, 0.9 - move.index * 0.05).toString())
+
+    const label = document.createElementNS('http://www.w3.org/2000/svg', 'text')
+    label.setAttribute('x', labelX.toString())
+    label.setAttribute('y', labelY.toString())
+    label.setAttribute('text-anchor', 'middle')
+    label.setAttribute('dominant-baseline', 'central')
+    label.setAttribute('font-size', fontSize.toString())
+    label.setAttribute('font-weight', '700')
+    label.setAttribute('fill', color)
+    label.setAttribute('stroke', '#ffffff')
+    label.setAttribute('stroke-width', labelStrokeWidth.toString())
+    label.setAttribute('paint-order', 'stroke')
+    label.textContent = String(move.rank)
 
     overlay.appendChild(line)
     overlay.appendChild(target)
+    overlay.appendChild(label)
   }
 
   if (overlay.childElementCount === 0) {
@@ -165,6 +236,7 @@ function drawMoves(uciMoves: string[]): void {
 export function updateBoardSuggestion(insight: PositionInsight | null | undefined): void {
   if (!insight?.hintsEnabled) {
     lastMoves = []
+    lastMovesKey = ''
     clearOverlay()
     return
   }
@@ -175,19 +247,34 @@ export function updateBoardSuggestion(insight: PositionInsight | null | undefine
 
   if (moves.length === 0) {
     lastMoves = []
+    lastMovesKey = ''
     clearOverlay()
     return
   }
 
+  const movesKey = moves.join(',')
+  const hasOverlay = Boolean(document.getElementById(OVERLAY_ID))
+  if (movesKey === lastMovesKey && hasOverlay) {
+    return
+  }
+
   lastMoves = moves
+  lastMovesKey = movesKey
   drawMoves(moves)
 }
 
 export function setupOverlayAutoRefresh(): void {
   const rerender = () => {
-    if (lastMoves.length > 0) {
-      drawMoves(lastMoves)
+    if (rerenderScheduled) {
+      return
     }
+    rerenderScheduled = true
+    window.requestAnimationFrame(() => {
+      rerenderScheduled = false
+      if (lastMoves.length > 0) {
+        drawMoves(lastMoves)
+      }
+    })
   }
 
   window.addEventListener('resize', rerender)

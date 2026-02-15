@@ -29,6 +29,11 @@ async function setHintsEnabled(next: boolean): Promise<void> {
   await chrome.storage.local.set({ [HINTS_ENABLED_KEY]: next })
 }
 
+function bookNameFromPath(path: string): string {
+  const file = path.split('/').pop() ?? ''
+  return file.replace(/\.bin$/i, '')
+}
+
 function aggregateMoves(hits: Awaited<ReturnType<OpeningsService['lookupAllBooksByFen']>>): TheoreticalMove[] {
   const byMove = new Map<string, TheoreticalMove>()
 
@@ -99,8 +104,7 @@ async function computeInsight(snapshot: PositionSnapshot | null): Promise<Positi
     return {
       snapshot,
       openingId: topHit.opening?.id,
-      openingName: topHit.opening?.name,
-      openingEco: topHit.opening?.eco,
+      openingName: bookNameFromPath(topHit.path) || topHit.opening?.name,
       bookMoveUci: theoreticalMoves[0]?.uci,
       theoreticalMoves,
       matchedBooks: hits.length,

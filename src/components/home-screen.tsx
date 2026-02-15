@@ -339,28 +339,11 @@ export function HomeScreen() {
         </div>
       </div>
 
-      <div className="w-full mt-6 mb-2 p-3 rounded-xl bg-card/90 border border-border/60 relative z-10">
-        <div className="flex items-center justify-between mb-2">
-          <span className="text-[10px] uppercase tracking-wider text-muted-foreground">Текущая позиция</span>
-          <span className="text-[10px] text-muted-foreground">{insight.snapshot?.source ?? "n/a"}</span>
-        </div>
-        <p className="text-[11px] font-mono text-muted-foreground break-all">{insight.snapshot?.fen ?? "FEN: n/a"}</p>
-        <p className="text-[11px] mt-2 text-muted-foreground">
-          Дебют: {insight.openingName ? `${insight.openingName}${insight.openingEco ? ` (${insight.openingEco})` : ""}` : "не определен"}
+      <div className="w-full mt-6 mb-2 p-4 rounded-xl bg-card/90 border border-border/60 relative z-10">
+        <p className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground/80 mb-2">Текущий дебют</p>
+        <p className="text-base font-semibold leading-snug bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent">
+          {insight.openingName ? insight.openingName : "Не определен"}
         </p>
-        <p className="text-[11px] text-muted-foreground">Книг с совпадением: {insight.matchedBooks}</p>
-        <p className="text-[11px] text-muted-foreground">Статус: {insight.bookStatus}</p>
-        <div className="mt-2 max-h-20 overflow-auto space-y-1">
-          {insight.theoreticalMoves.slice(0, 6).map((entry) => (
-            <div key={entry.uci} className="text-[11px] font-mono flex items-center justify-between">
-              <span>{entry.uci}</span>
-              <span className="text-muted-foreground">w={entry.totalWeight} • b={entry.booksCount}</span>
-            </div>
-          ))}
-          {insight.theoreticalMoves.length === 0 && (
-            <p className="text-[11px] text-muted-foreground">Ходов нет</p>
-          )}
-        </div>
       </div>
     </div>
   );
