@@ -264,6 +264,31 @@ This file is for me (the agent). It should be enough to understand the repo with
     `position:get`, `hints:get`, `performance:get`, `settings:get`, `position:update`, `hints:set`, `performance:set`.
   - ensures `economy` survives worker cold starts and applies immediately after reload.
 
+## Completed Work (2026-02-15, books replacement compatibility)
+### 1) Reindexed books after replacing `.bin` set
+- User replaced `public/books/*.bin` with a significantly smaller, more general set.
+- Rebuilt `src/data/books.index.json` from actual files currently present in `public/books`.
+- Removed stale mappings to deleted files and added mappings for newly introduced files.
+
+### 2) Added family-level fallback mapping for openings
+- Problem: `openings.json` remains fine-grained (many sub-variations), while new books are grouped by broader families.
+- Fix in `src/core/books/service.ts`:
+  - Kept exact matching by opening `id`/`name` first.
+  - Added fallback resolver that maps detailed openings/tags to available family books when exact file is absent.
+  - Implemented family rules for key groups (e.g. King's Indian, Nimzo-Indian, Queen's Gambit/QGD family, Open Game/Spanish family, Scotch, Owen/Nimzowitsch).
+- Result: all openings in `src/data/openings.json` now resolve to a book path (exact or family fallback), so lookup pipeline remains functional with fewer books.
+
+### 3) Validation outcome
+- Verified coverage after changes: `openings=65`, `mapped=65`, `miss=0`.
+- Build status after changes: `npm run build` passes.
+
+### 4) Books preset folder prep (`general`)
+- Moved current books to `public/books/general/*.bin` to prepare for multiple presets.
+- Updated path dependencies:
+  - `src/data/books.index.json` now points to `books/general/<file>.bin`
+  - `public/manifest.json` web-accessible resources include nested `books/*/*.bin`
+  - `scripts/import-polyglot-books.mjs` defaults to importing into `public/books/general` and writes `books/general/...` paths.
+
 ## Agent Notes
 - Prefer `rg` for search.
 - Prefer `apply_patch` for single-file edits.

@@ -20,7 +20,7 @@
   ],
   "web_accessible_resources": [
     {
-      "resources": ["books/*.bin"],
+      "resources": ["books/*.bin", "books/*/*.bin"],
       "matches": ["https://www.chess.com/*", "https://lichess.org/*"]
     }
   ],

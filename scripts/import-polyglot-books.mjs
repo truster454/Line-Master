@@ -36,7 +36,7 @@ function toBigUint64(buffer, offset) {
 function parseArgs(argv) {
   const args = {
     source: '../scrypt/books',
-    destination: 'public/books',
+    destination: 'public/books/general',
     openings: 'src/data/openings.json',
     booksIndex: 'src/data/books.index.json',
     openingsIndex: 'src/data/openings.index.json',
@@ -102,7 +102,7 @@ function printHelp() {
       '',
       'Options:',
       '  --source <path>         Source folder with *.bin files (default: ../scrypt/books)',
-      '  --destination <path>    Destination folder for copied books (default: public/books)',
+      '  --destination <path>    Destination folder for copied books (default: public/books/general)',
       '  --openings <path>       Openings metadata JSON (default: src/data/openings.json)',
       '  --books-index <path>    Output books index JSON (default: src/data/books.index.json)',
       '  --openings-index <path> Output openings search index JSON (default: src/data/openings.index.json)',
@@ -166,7 +166,7 @@ function buildBooksIndex(binFiles) {
     if (index[id]) {
       fail(`Duplicate opening id generated from file names: ${id}`)
     }
-    index[id] = `books/${fileName}`
+    index[id] = `books/general/${fileName}`
   }
   return index
 }
