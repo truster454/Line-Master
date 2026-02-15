@@ -1,4 +1,5 @@
 import { OpeningsService } from '../core/openings'
+import classificationRaw from '../data/openings.classification.txt?raw'
 import { createLogger } from '../shared/logger'
 import type { PerformanceMode, PositionInsight, PositionSnapshot, TheoreticalMove } from '../shared/types'
 import { FavoritesRepo } from './storage'
@@ -13,6 +14,21 @@ let hintsEnabled = false
 let performanceMode: PerformanceMode = 'standard'
 let settingsReady = false
 let settingsLoadInFlight: Promise<void> | null = null
+
+const CLASSIFICATION_LINE_RE = /^(\S+)\s{2,}(.+?)\s{2,}(.+?)\s{2,}(.+?)\s{2,}(.+)$/
+const RUS_NAME_BY_BOOK_FILE = new Map<string, string>()
+
+for (const rawLine of classificationRaw.split(/\r?\n/)) {
+  const line = rawLine.trim()
+  if (!line || line.startsWith('#')) {
+    continue
+  }
+  const match = line.match(CLASSIFICATION_LINE_RE)
+  if (!match) {
+    continue
+  }
+  RUS_NAME_BY_BOOK_FILE.set(match[1], match[2])
+}
 
 let latestInsight: PositionInsight = {
   snapshot: null,
@@ -75,7 +91,14 @@ async function refreshSettingsFromStorage(force = false): Promise<void> {
 
 function bookNameFromPath(path: string): string {
   const file = path.split('/').pop() ?? ''
-  return file.replace(/\.bin$/i, '')
+  const byClassification = RUS_NAME_BY_BOOK_FILE.get(file)
+  if (byClassification) {
+    return byClassification
+  }
+  return file
+    .replace(/\.bin$/i, '')
+    .replace(/_/g, ' ')
+    .trim()
 }
 
 function aggregateMoves(hits: Awaited<ReturnType<OpeningsService['lookupAllBooksByFen']>>): TheoreticalMove[] {

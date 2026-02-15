@@ -9,7 +9,7 @@ Nimzo_Indian_Defense.bin  Нимцо-индийская защита  2000+  Hyp
 Alekhine_Defense.bin  Защита Алехина  2000+  Hypermodern openings  Theoretical
 Two_Knights_Defense.bin  Защита двух коней  1000–1300  Classical openings  Tactical
 Semi_Slav_Defense.bin  Полуславянская защита  2000+  Classical openings  Theoretical
-Queens_Gambit_Accepted.bin  Принятый ферзевый гамбит  1300–1600  Classical openings  Theoretical
+Queens_Gambit_Accepted.bin  Принятый ферзевый гамбит  1300–1600  Gambits  Theoretical
 Zukertort_Opening.bin  Дебют Цукерторта  1300–1600  System openings  System-based
 Colle_System.bin  Система Колле  700–1000  System openings  System-based
 Scandinavian_Defense.bin  Скандинавская защита  700–1000  Classical openings  Basic
@@ -20,12 +20,12 @@ Reti_Opening.bin  Дебют Рети  1600–2000  Flank openings  Conceptual
 Albin_Countergambit.bin  Контргамбит Альбина  1000–1300  Countergambits  Tactical
 Catalan_Opening.bin  Каталонское начало  1600–2000  Classical openings  Conceptual
 Semi_Tarrasch_Defense.bin  Полузащита Тарраша (Семи-Тарраш)  1600–2000  Classical openings  Conceptual
-Budapest_Gambit.bin  Будапештский гамбит  1000–1300  Trap openings  Tactical
+Budapest_Gambit.bin  Будапештский гамбит  1000–1300  Gambits  Tactical
 Open_Game_Other.bin  Открытая игра (прочее)  700–1000  Classical openings  Basic
 Benko_Gambit.bin  Гамбит Бенко  2000+  Gambits  Theoretical
 Caro_Kann_Defense.bin  Защита Каро–Канн  1300–1600  Classical openings  System-based
 Kings_Indian_Defense.bin  Староиндийская защита  1600–2000  Hypermodern openings  Conceptual
-Queens_Gambit.bin  Ферзевый гамбит  1600–2000  Classical openings  System-based
+Queens_Gambit.bin  Ферзевый гамбит  1600–2000  Gambits  System-based
 Queens_Indian_Defense.bin  Ферзево-индийская защита  1600–2000  Hypermodern openings  Conceptual
 Slav_Defense.bin  Славянская защита  1300–1600  Classical openings  System-based
 Scotch_Game.bin  Шотландская партия  700–1000  Classical openings  Tactical
