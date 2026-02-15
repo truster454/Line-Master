@@ -69,10 +69,16 @@ const AVAILABLE_BOOK_IDS = new Set(Object.keys(booksIndex))
 
 const FAMILY_RULES: Array<{ match: RegExp; target: string }> = [
   { match: /(kings?-indian|k-i-d|kid)/, target: 'kings-indian-defense' },
+  { match: /(kings?-gambit)/, target: 'kings-gambit' },
   { match: /(nimzo-indian|nimzo)/, target: 'nimzo-indian-defense' },
+  { match: /(benoni)/, target: 'benoni-defense' },
+  { match: /(sicilian)/, target: 'sicilian-defense' },
+  { match: /(french)/, target: 'french-defense' },
+  { match: /(pirc|modern-defense)/, target: 'pirc-defense' },
   { match: /(queens?-gambit|qgd|ragozin|lasker|cambridge-springs|tartakower)/, target: 'queens-gambit' },
   { match: /(queens?-pawn)/, target: 'queens-pawn-game' },
-  { match: /(spanish|ruy-lopez|berlin|open-games?-other|kings?-pawn-game-other|philidor|evans|bishop|italian|four-knights|three-knights|center-game|north-gambit|uncommon|unmatched)/, target: 'open-game-other' },
+  { match: /(uncommon|unmatched)/, target: 'uncommon-openings' },
+  { match: /(spanish|ruy-lopez|berlin|open-games?-other|kings?-pawn-game-other|philidor|evans|bishop|italian|four-knights|three-knights|center-game|north-gambit)/, target: 'open-game-other' },
   { match: /(scotch-gambit|scotch)/, target: 'scotch-game' },
   { match: /(owen|nimzowitsch)/, target: 'owen-defense' }
 ]

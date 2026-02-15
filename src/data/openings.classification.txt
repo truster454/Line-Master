@@ -29,3 +29,11 @@ Queens_Gambit.bin  Ферзевый гамбит  1600–2000  Gambits  System-b
 Queens_Indian_Defense.bin  Ферзево-индийская защита  1600–2000  Hypermodern openings  Conceptual
 Slav_Defense.bin  Славянская защита  1300–1600  Classical openings  System-based
 Scotch_Game.bin  Шотландская партия  700–1000  Classical openings  Tactical
+Uncommon_Openings.bin  Необычные дебюты  1000–1300  Trap openings  Tactical
+Benoni_Defense.bin  Защита Бенони  1600–2000  Hypermodern openings  Conceptual
+Pirc_Defense.bin  Защита Пирца  1600–2000  Hypermodern openings  Conceptual
+Sicilian_Defense.bin  Сицилианская защита  2000+  Classical openings  Theoretical
+French_Defense.bin  Французская защита  1600–2000  Classical openings  Theoretical
+Kings_Gambit.bin  Королевский гамбит  1600–2000  Gambits  Tactical
+Philidor_Defense.bin  Защита Филидора  1300–1600  Classical openings  System-based
+Italian_Game.bin  Итальянская партия  700–1000  Classical openings  System-based

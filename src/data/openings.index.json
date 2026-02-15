@@ -1,10 +1,4 @@
 {
-  "5bf4": [
-    "qgd-exchange-and-5bf4-lines"
-  ],
-  "a00": [
-    "uncommon-and-other-openings"
-  ],
   "a03": [
     "bird-opening"
   ],
@@ -16,9 +10,6 @@
   ],
   "a28": [
     "english-opening"
-  ],
-  "a43": [
-    "queens-pawn-other-systems"
   ],
   "a92": [
     "dutch-defense"
@@ -44,24 +35,6 @@
   "alekhine-defense": [
     "alekhine-defense"
   ],
-  "and": [
-    "center-game-and-north-gambit",
-    "owen-defense-and-nimzowitsch-defense",
-    "qgd-exchange-and-5bf4-lines",
-    "scotch-game-and-scotch-gambit",
-    "spanish-exchange-and-related",
-    "spanish-steinitz-and-related",
-    "uncommon-and-other-openings"
-  ],
-  "attack": [
-    "kings-indian-defense-four-pawns-attack"
-  ],
-  "averbakh": [
-    "kings-indian-defense-averbakh-system"
-  ],
-  "b00": [
-    "owen-defense-and-nimzowitsch-defense"
-  ],
   "b01": [
     "scandinavian-defense"
   ],
@@ -71,14 +44,23 @@
   "b10": [
     "caro-kann-defense"
   ],
-  "berlin": [
-    "berlin-defense"
+  "benko": [
+    "benko-gambit"
   ],
-  "berlin defense": [
-    "berlin-defense"
+  "benko gambit": [
+    "benko-gambit"
   ],
-  "berlin-defense": [
-    "berlin-defense"
+  "benko-gambit": [
+    "benko-gambit"
+  ],
+  "benoni": [
+    "benoni-defense"
+  ],
+  "benoni defense": [
+    "benoni-defense"
+  ],
+  "benoni-defense": [
+    "benoni-defense"
   ],
   "bird": [
     "bird-opening"
@@ -89,15 +71,6 @@
   "bird-opening": [
     "bird-opening"
   ],
-  "bishops": [
-    "bishops-opening"
-  ],
-  "bishops opening": [
-    "bishops-opening"
-  ],
-  "bishops-opening": [
-    "bishops-opening"
-  ],
   "blumenfeld": [
     "blumenfeld-gambit"
   ],
@@ -107,20 +80,17 @@
   "blumenfeld-gambit": [
     "blumenfeld-gambit"
   ],
-  "c20": [
-    "kings-pawn-game-other"
+  "budapest": [
+    "budapest-gambit"
   ],
-  "c21": [
-    "center-game-and-north-gambit"
+  "budapest gambit": [
+    "budapest-gambit"
   ],
-  "c23": [
-    "bishops-opening"
+  "budapest-gambit": [
+    "budapest-gambit"
   ],
   "c26": [
     "vienna-game"
-  ],
-  "c40": [
-    "open-games-other"
   ],
   "c41": [
     "philidor-defense"
@@ -128,53 +98,11 @@
   "c42": [
     "petrov-defense"
   ],
-  "c44": [
-    "scotch-game-and-scotch-gambit"
-  ],
-  "c46": [
-    "three-knights-game"
-  ],
-  "c47": [
-    "four-knights-game"
-  ],
-  "c51": [
-    "evans-gambit"
-  ],
   "c54": [
     "italian-game"
   ],
   "c58": [
     "two-knights-defense"
-  ],
-  "c62": [
-    "spanish-game-other"
-  ],
-  "c65": [
-    "berlin-defense"
-  ],
-  "c68": [
-    "spanish-exchange-and-related"
-  ],
-  "c77": [
-    "spanish-steinitz-and-related"
-  ],
-  "c84": [
-    "open-spanish"
-  ],
-  "c89": [
-    "closed-spanish-marshall"
-  ],
-  "c90": [
-    "spanish-main-line-systems"
-  ],
-  "cambridge": [
-    "cambridge-springs-defense"
-  ],
-  "cambridge springs defense": [
-    "cambridge-springs-defense"
-  ],
-  "cambridge-springs-defense": [
-    "cambridge-springs-defense"
   ],
   "caro": [
     "caro-kann-defense"
@@ -194,27 +122,6 @@
   "catalan-opening": [
     "catalan-opening"
   ],
-  "center": [
-    "center-game-and-north-gambit"
-  ],
-  "center game and north gambit": [
-    "center-game-and-north-gambit"
-  ],
-  "center-game-and-north-gambit": [
-    "center-game-and-north-gambit"
-  ],
-  "classical": [
-    "kings-indian-defense-classical-system"
-  ],
-  "closed": [
-    "closed-spanish-marshall"
-  ],
-  "closed spanish marshall": [
-    "closed-spanish-marshall"
-  ],
-  "closed-spanish-marshall": [
-    "closed-spanish-marshall"
-  ],
   "colle": [
     "colle-system"
   ],
@@ -233,9 +140,6 @@
   "d05": [
     "colle-system"
   ],
-  "d07": [
-    "queens-gambit-rare-lines"
-  ],
   "d08": [
     "albin-countergambit"
   ],
@@ -245,17 +149,8 @@
   "d20": [
     "queens-gambit-accepted"
   ],
-  "d30": [
-    "queens-gambit-declined-early-without-nc3"
-  ],
   "d32": [
     "tarrasch-defense"
-  ],
-  "d35": [
-    "qgd-exchange-and-5bf4-lines"
-  ],
-  "d38": [
-    "ragozin-defense"
   ],
   "d42": [
     "semi-tarrasch-defense"
@@ -263,64 +158,30 @@
   "d46": [
     "semi-slav-defense"
   ],
-  "d51": [
-    "qgd-general"
-  ],
-  "d52": [
-    "cambridge-springs-defense"
-  ],
-  "d53": [
-    "qgd-orthodox-early-deviations"
-  ],
-  "d57": [
-    "lasker-defense"
-  ],
-  "d58": [
-    "tartakower-defense"
-  ],
-  "d64": [
-    "qgd-orthodox-main-line"
-  ],
   "d94": [
     "grunfeld-defense"
   ],
-  "declined": [
-    "queens-gambit-declined-early-without-nc3"
-  ],
   "defense": [
     "alekhine-defense",
-    "berlin-defense",
-    "cambridge-springs-defense",
+    "benoni-defense",
     "caro-kann-defense",
     "dutch-defense",
+    "french-defense",
     "grunfeld-defense",
-    "kings-indian-defense-averbakh-system",
-    "kings-indian-defense-classical-system",
-    "kings-indian-defense-early-variations",
-    "kings-indian-defense-fianchetto",
-    "kings-indian-defense-four-pawns-attack",
-    "kings-indian-defense-samisch-system",
-    "lasker-defense",
-    "nimzo-indian-defense-general",
-    "nimzo-indian-defense-leningrad-variation",
-    "nimzo-indian-defense-qc2-variations",
-    "nimzo-indian-defense-rubinstein-system",
-    "nimzo-indian-defense-samisch-system",
-    "owen-defense-and-nimzowitsch-defense",
+    "kings-indian-defense",
+    "nimzo-indian-defense",
+    "owen-defense",
     "petrov-defense",
     "philidor-defense",
+    "pirc-defense",
     "queens-indian-defense",
-    "ragozin-defense",
     "scandinavian-defense",
     "semi-slav-defense",
     "semi-tarrasch-defense",
+    "sicilian-defense",
     "slav-defense",
     "tarrasch-defense",
-    "tartakower-defense",
     "two-knights-defense"
-  ],
-  "deviations": [
-    "qgd-orthodox-early-deviations"
   ],
   "dutch": [
     "dutch-defense"
@@ -340,44 +201,6 @@
   "e11": [
     "queens-indian-defense"
   ],
-  "e20": [
-    "nimzo-indian-defense-general"
-  ],
-  "e24": [
-    "nimzo-indian-defense-samisch-system"
-  ],
-  "e30": [
-    "nimzo-indian-defense-leningrad-variation"
-  ],
-  "e37": [
-    "nimzo-indian-defense-qc2-variations"
-  ],
-  "e50": [
-    "nimzo-indian-defense-rubinstein-system"
-  ],
-  "e61": [
-    "kings-indian-defense-fianchetto"
-  ],
-  "e70": [
-    "kings-indian-defense-early-variations"
-  ],
-  "e73": [
-    "kings-indian-defense-averbakh-system"
-  ],
-  "e76": [
-    "kings-indian-defense-four-pawns-attack"
-  ],
-  "e80": [
-    "kings-indian-defense-samisch-system"
-  ],
-  "e91": [
-    "kings-indian-defense-classical-system"
-  ],
-  "early": [
-    "kings-indian-defense-early-variations",
-    "qgd-orthodox-early-deviations",
-    "queens-gambit-declined-early-without-nc3"
-  ],
   "english": [
     "english-opening"
   ],
@@ -387,58 +210,29 @@
   "english-opening": [
     "english-opening"
   ],
-  "evans": [
-    "evans-gambit"
+  "french": [
+    "french-defense"
   ],
-  "evans gambit": [
-    "evans-gambit"
+  "french defense": [
+    "french-defense"
   ],
-  "evans-gambit": [
-    "evans-gambit"
-  ],
-  "exchange": [
-    "qgd-exchange-and-5bf4-lines",
-    "spanish-exchange-and-related"
-  ],
-  "fianchetto": [
-    "kings-indian-defense-fianchetto"
-  ],
-  "four": [
-    "four-knights-game",
-    "kings-indian-defense-four-pawns-attack"
-  ],
-  "four knights game": [
-    "four-knights-game"
-  ],
-  "four-knights-game": [
-    "four-knights-game"
+  "french-defense": [
+    "french-defense"
   ],
   "gambit": [
+    "benko-gambit",
     "blumenfeld-gambit",
-    "center-game-and-north-gambit",
-    "evans-gambit",
-    "queens-gambit-accepted",
-    "queens-gambit-declined-early-without-nc3",
-    "queens-gambit-rare-lines",
-    "scotch-game-and-scotch-gambit"
+    "budapest-gambit",
+    "kings-gambit",
+    "queens-gambit",
+    "queens-gambit-accepted"
   ],
   "game": [
-    "center-game-and-north-gambit",
-    "four-knights-game",
     "italian-game",
-    "kings-pawn-game-other",
+    "open-game-other",
     "queens-pawn-game",
-    "scotch-game-and-scotch-gambit",
-    "spanish-game-other",
-    "three-knights-game",
+    "scotch-game",
     "vienna-game"
-  ],
-  "games": [
-    "open-games-other"
-  ],
-  "general": [
-    "nimzo-indian-defense-general",
-    "qgd-general"
   ],
   "grunfeld": [
     "grunfeld-defense"
@@ -450,17 +244,8 @@
     "grunfeld-defense"
   ],
   "indian": [
-    "kings-indian-defense-averbakh-system",
-    "kings-indian-defense-classical-system",
-    "kings-indian-defense-early-variations",
-    "kings-indian-defense-fianchetto",
-    "kings-indian-defense-four-pawns-attack",
-    "kings-indian-defense-samisch-system",
-    "nimzo-indian-defense-general",
-    "nimzo-indian-defense-leningrad-variation",
-    "nimzo-indian-defense-qc2-variations",
-    "nimzo-indian-defense-rubinstein-system",
-    "nimzo-indian-defense-samisch-system",
+    "kings-indian-defense",
+    "nimzo-indian-defense",
     "queens-indian-defense"
   ],
   "italian": [
@@ -476,188 +261,66 @@
     "caro-kann-defense"
   ],
   "kings": [
-    "kings-indian-defense-averbakh-system",
-    "kings-indian-defense-classical-system",
-    "kings-indian-defense-early-variations",
-    "kings-indian-defense-fianchetto",
-    "kings-indian-defense-four-pawns-attack",
-    "kings-indian-defense-samisch-system",
-    "kings-pawn-game-other"
+    "kings-gambit",
+    "kings-indian-defense"
   ],
-  "kings indian defense averbakh system": [
-    "kings-indian-defense-averbakh-system"
+  "kings gambit": [
+    "kings-gambit"
   ],
-  "kings indian defense classical system": [
-    "kings-indian-defense-classical-system"
+  "kings indian defense": [
+    "kings-indian-defense"
   ],
-  "kings indian defense early variations": [
-    "kings-indian-defense-early-variations"
+  "kings-gambit": [
+    "kings-gambit"
   ],
-  "kings indian defense fianchetto": [
-    "kings-indian-defense-fianchetto"
-  ],
-  "kings indian defense four pawns attack": [
-    "kings-indian-defense-four-pawns-attack"
-  ],
-  "kings indian defense samisch system": [
-    "kings-indian-defense-samisch-system"
-  ],
-  "kings pawn game other": [
-    "kings-pawn-game-other"
-  ],
-  "kings-indian-defense-averbakh-system": [
-    "kings-indian-defense-averbakh-system"
-  ],
-  "kings-indian-defense-classical-system": [
-    "kings-indian-defense-classical-system"
-  ],
-  "kings-indian-defense-early-variations": [
-    "kings-indian-defense-early-variations"
-  ],
-  "kings-indian-defense-fianchetto": [
-    "kings-indian-defense-fianchetto"
-  ],
-  "kings-indian-defense-four-pawns-attack": [
-    "kings-indian-defense-four-pawns-attack"
-  ],
-  "kings-indian-defense-samisch-system": [
-    "kings-indian-defense-samisch-system"
-  ],
-  "kings-pawn-game-other": [
-    "kings-pawn-game-other"
+  "kings-indian-defense": [
+    "kings-indian-defense"
   ],
   "knights": [
-    "four-knights-game",
-    "three-knights-game",
     "two-knights-defense"
   ],
-  "lasker": [
-    "lasker-defense"
-  ],
-  "lasker defense": [
-    "lasker-defense"
-  ],
-  "lasker-defense": [
-    "lasker-defense"
-  ],
-  "leningrad": [
-    "nimzo-indian-defense-leningrad-variation"
-  ],
-  "line": [
-    "qgd-orthodox-main-line",
-    "spanish-main-line-systems"
-  ],
-  "lines": [
-    "qgd-exchange-and-5bf4-lines",
-    "queens-gambit-rare-lines"
-  ],
-  "main": [
-    "qgd-orthodox-main-line",
-    "spanish-main-line-systems"
-  ],
-  "marshall": [
-    "closed-spanish-marshall"
-  ],
-  "nc3": [
-    "queens-gambit-declined-early-without-nc3"
-  ],
   "nimzo": [
-    "nimzo-indian-defense-general",
-    "nimzo-indian-defense-leningrad-variation",
-    "nimzo-indian-defense-qc2-variations",
-    "nimzo-indian-defense-rubinstein-system",
-    "nimzo-indian-defense-samisch-system"
+    "nimzo-indian-defense"
   ],
-  "nimzo indian defense general": [
-    "nimzo-indian-defense-general"
+  "nimzo indian defense": [
+    "nimzo-indian-defense"
   ],
-  "nimzo indian defense leningrad variation": [
-    "nimzo-indian-defense-leningrad-variation"
-  ],
-  "nimzo indian defense qc2 variations": [
-    "nimzo-indian-defense-qc2-variations"
-  ],
-  "nimzo indian defense rubinstein system": [
-    "nimzo-indian-defense-rubinstein-system"
-  ],
-  "nimzo indian defense samisch system": [
-    "nimzo-indian-defense-samisch-system"
-  ],
-  "nimzo-indian-defense-general": [
-    "nimzo-indian-defense-general"
-  ],
-  "nimzo-indian-defense-leningrad-variation": [
-    "nimzo-indian-defense-leningrad-variation"
-  ],
-  "nimzo-indian-defense-qc2-variations": [
-    "nimzo-indian-defense-qc2-variations"
-  ],
-  "nimzo-indian-defense-rubinstein-system": [
-    "nimzo-indian-defense-rubinstein-system"
-  ],
-  "nimzo-indian-defense-samisch-system": [
-    "nimzo-indian-defense-samisch-system"
-  ],
-  "nimzowitsch": [
-    "owen-defense-and-nimzowitsch-defense"
-  ],
-  "north": [
-    "center-game-and-north-gambit"
+  "nimzo-indian-defense": [
+    "nimzo-indian-defense"
   ],
   "open": [
-    "open-games-other",
-    "open-spanish"
+    "open-game-other"
   ],
-  "open games other": [
-    "open-games-other"
+  "open game other": [
+    "open-game-other"
   ],
-  "open spanish": [
-    "open-spanish"
-  ],
-  "open-games-other": [
-    "open-games-other"
-  ],
-  "open-spanish": [
-    "open-spanish"
+  "open-game-other": [
+    "open-game-other"
   ],
   "opening": [
     "bird-opening",
-    "bishops-opening",
     "catalan-opening",
     "english-opening",
     "reti-opening",
     "zukertort-opening"
   ],
   "openings": [
-    "uncommon-and-other-openings"
-  ],
-  "orthodox": [
-    "qgd-orthodox-early-deviations",
-    "qgd-orthodox-main-line"
+    "uncommon-openings"
   ],
   "other": [
-    "kings-pawn-game-other",
-    "open-games-other",
-    "queens-pawn-other-systems",
-    "spanish-game-other",
-    "uncommon-and-other-openings"
+    "open-game-other"
   ],
   "owen": [
-    "owen-defense-and-nimzowitsch-defense"
+    "owen-defense"
   ],
-  "owen defense and nimzowitsch defense": [
-    "owen-defense-and-nimzowitsch-defense"
+  "owen defense": [
+    "owen-defense"
   ],
-  "owen-defense-and-nimzowitsch-defense": [
-    "owen-defense-and-nimzowitsch-defense"
+  "owen-defense": [
+    "owen-defense"
   ],
   "pawn": [
-    "kings-pawn-game-other",
-    "queens-pawn-game",
-    "queens-pawn-other-systems"
-  ],
-  "pawns": [
-    "kings-indian-defense-four-pawns-attack"
+    "queens-pawn-game"
   ],
   "petrov": [
     "petrov-defense"
@@ -677,55 +340,26 @@
   "philidor-defense": [
     "philidor-defense"
   ],
-  "qc2": [
-    "nimzo-indian-defense-qc2-variations"
+  "pirc": [
+    "pirc-defense"
   ],
-  "qgd": [
-    "qgd-exchange-and-5bf4-lines",
-    "qgd-general",
-    "qgd-orthodox-early-deviations",
-    "qgd-orthodox-main-line"
+  "pirc defense": [
+    "pirc-defense"
   ],
-  "qgd exchange and 5bf4 lines": [
-    "qgd-exchange-and-5bf4-lines"
-  ],
-  "qgd general": [
-    "qgd-general"
-  ],
-  "qgd orthodox early deviations": [
-    "qgd-orthodox-early-deviations"
-  ],
-  "qgd orthodox main line": [
-    "qgd-orthodox-main-line"
-  ],
-  "qgd-exchange-and-5bf4-lines": [
-    "qgd-exchange-and-5bf4-lines"
-  ],
-  "qgd-general": [
-    "qgd-general"
-  ],
-  "qgd-orthodox-early-deviations": [
-    "qgd-orthodox-early-deviations"
-  ],
-  "qgd-orthodox-main-line": [
-    "qgd-orthodox-main-line"
+  "pirc-defense": [
+    "pirc-defense"
   ],
   "queens": [
+    "queens-gambit",
     "queens-gambit-accepted",
-    "queens-gambit-declined-early-without-nc3",
-    "queens-gambit-rare-lines",
     "queens-indian-defense",
-    "queens-pawn-game",
-    "queens-pawn-other-systems"
+    "queens-pawn-game"
+  ],
+  "queens gambit": [
+    "queens-gambit"
   ],
   "queens gambit accepted": [
     "queens-gambit-accepted"
-  ],
-  "queens gambit declined early without nc3": [
-    "queens-gambit-declined-early-without-nc3"
-  ],
-  "queens gambit rare lines": [
-    "queens-gambit-rare-lines"
   ],
   "queens indian defense": [
     "queens-indian-defense"
@@ -733,42 +367,17 @@
   "queens pawn game": [
     "queens-pawn-game"
   ],
-  "queens pawn other systems": [
-    "queens-pawn-other-systems"
+  "queens-gambit": [
+    "queens-gambit"
   ],
   "queens-gambit-accepted": [
     "queens-gambit-accepted"
-  ],
-  "queens-gambit-declined-early-without-nc3": [
-    "queens-gambit-declined-early-without-nc3"
-  ],
-  "queens-gambit-rare-lines": [
-    "queens-gambit-rare-lines"
   ],
   "queens-indian-defense": [
     "queens-indian-defense"
   ],
   "queens-pawn-game": [
     "queens-pawn-game"
-  ],
-  "queens-pawn-other-systems": [
-    "queens-pawn-other-systems"
-  ],
-  "ragozin": [
-    "ragozin-defense"
-  ],
-  "ragozin defense": [
-    "ragozin-defense"
-  ],
-  "ragozin-defense": [
-    "ragozin-defense"
-  ],
-  "rare": [
-    "queens-gambit-rare-lines"
-  ],
-  "related": [
-    "spanish-exchange-and-related",
-    "spanish-steinitz-and-related"
   ],
   "reti": [
     "reti-opening"
@@ -778,13 +387,6 @@
   ],
   "reti-opening": [
     "reti-opening"
-  ],
-  "rubinstein": [
-    "nimzo-indian-defense-rubinstein-system"
-  ],
-  "samisch": [
-    "kings-indian-defense-samisch-system",
-    "nimzo-indian-defense-samisch-system"
   ],
   "scandinavian": [
     "scandinavian-defense"
@@ -796,13 +398,13 @@
     "scandinavian-defense"
   ],
   "scotch": [
-    "scotch-game-and-scotch-gambit"
+    "scotch-game"
   ],
-  "scotch game and scotch gambit": [
-    "scotch-game-and-scotch-gambit"
+  "scotch game": [
+    "scotch-game"
   ],
-  "scotch-game-and-scotch-gambit": [
-    "scotch-game-and-scotch-gambit"
+  "scotch-game": [
+    "scotch-game"
   ],
   "semi": [
     "semi-slav-defense",
@@ -820,6 +422,15 @@
   "semi-tarrasch-defense": [
     "semi-tarrasch-defense"
   ],
+  "sicilian": [
+    "sicilian-defense"
+  ],
+  "sicilian defense": [
+    "sicilian-defense"
+  ],
+  "sicilian-defense": [
+    "sicilian-defense"
+  ],
   "slav": [
     "semi-slav-defense",
     "slav-defense"
@@ -830,55 +441,8 @@
   "slav-defense": [
     "slav-defense"
   ],
-  "spanish": [
-    "closed-spanish-marshall",
-    "open-spanish",
-    "spanish-exchange-and-related",
-    "spanish-game-other",
-    "spanish-main-line-systems",
-    "spanish-steinitz-and-related"
-  ],
-  "spanish exchange and related": [
-    "spanish-exchange-and-related"
-  ],
-  "spanish game other": [
-    "spanish-game-other"
-  ],
-  "spanish main line systems": [
-    "spanish-main-line-systems"
-  ],
-  "spanish steinitz and related": [
-    "spanish-steinitz-and-related"
-  ],
-  "spanish-exchange-and-related": [
-    "spanish-exchange-and-related"
-  ],
-  "spanish-game-other": [
-    "spanish-game-other"
-  ],
-  "spanish-main-line-systems": [
-    "spanish-main-line-systems"
-  ],
-  "spanish-steinitz-and-related": [
-    "spanish-steinitz-and-related"
-  ],
-  "springs": [
-    "cambridge-springs-defense"
-  ],
-  "steinitz": [
-    "spanish-steinitz-and-related"
-  ],
   "system": [
-    "colle-system",
-    "kings-indian-defense-averbakh-system",
-    "kings-indian-defense-classical-system",
-    "kings-indian-defense-samisch-system",
-    "nimzo-indian-defense-rubinstein-system",
-    "nimzo-indian-defense-samisch-system"
-  ],
-  "systems": [
-    "queens-pawn-other-systems",
-    "spanish-main-line-systems"
+    "colle-system"
   ],
   "tarrasch": [
     "semi-tarrasch-defense",
@@ -890,24 +454,6 @@
   "tarrasch-defense": [
     "tarrasch-defense"
   ],
-  "tartakower": [
-    "tartakower-defense"
-  ],
-  "tartakower defense": [
-    "tartakower-defense"
-  ],
-  "tartakower-defense": [
-    "tartakower-defense"
-  ],
-  "three": [
-    "three-knights-game"
-  ],
-  "three knights game": [
-    "three-knights-game"
-  ],
-  "three-knights-game": [
-    "three-knights-game"
-  ],
   "two": [
     "two-knights-defense"
   ],
@@ -918,23 +464,13 @@
     "two-knights-defense"
   ],
   "uncommon": [
-    "uncommon-and-other-openings"
+    "uncommon-openings"
   ],
-  "uncommon and other openings": [
-    "uncommon-and-other-openings"
+  "uncommon openings": [
+    "uncommon-openings"
   ],
-  "uncommon-and-other-openings": [
-    "uncommon-and-other-openings"
-  ],
-  "unmatched": [
-    "unmatched"
-  ],
-  "variation": [
-    "nimzo-indian-defense-leningrad-variation"
-  ],
-  "variations": [
-    "kings-indian-defense-early-variations",
-    "nimzo-indian-defense-qc2-variations"
+  "uncommon-openings": [
+    "uncommon-openings"
   ],
   "vienna": [
     "vienna-game"
@@ -944,9 +480,6 @@
   ],
   "vienna-game": [
     "vienna-game"
-  ],
-  "without": [
-    "queens-gambit-declined-early-without-nc3"
   ],
   "zukertort": [
     "zukertort-opening"

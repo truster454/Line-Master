@@ -52,30 +52,26 @@
     ]
   },
   {
-    "id": "berlin-defense",
-    "name": "Berlin Defense",
+    "id": "benko-gambit",
+    "name": "Benko Gambit",
     "tags": [
-      "berlin",
-      "defense"
+      "benko",
+      "gambit"
     ],
     "type": "open",
-    "difficulty": "medium",
-    "ratingBand": "intermediate",
-    "eco": "C65",
-    "moves": [
-      "e4",
-      "e5",
-      "Bc4",
-      "Nc6",
-      "Nf3",
-      "Bc5",
-      "d3",
-      "Nf6",
-      "Bb5",
-      "d6",
-      "Bxc6",
-      "bxc6"
-    ]
+    "difficulty": "hard",
+    "ratingBand": "master"
+  },
+  {
+    "id": "benoni-defense",
+    "name": "Benoni Defense",
+    "tags": [
+      "benoni",
+      "defense"
+    ],
+    "type": "semi-closed",
+    "difficulty": "hard",
+    "ratingBand": "advanced"
   },
   {
     "id": "bird-opening",
@@ -101,32 +97,6 @@
       "O-O",
       "Nf3",
       "a6"
-    ]
-  },
-  {
-    "id": "bishops-opening",
-    "name": "Bishops Opening",
-    "tags": [
-      "bishops",
-      "opening"
-    ],
-    "type": "open",
-    "difficulty": "easy",
-    "ratingBand": "beginner",
-    "eco": "C23",
-    "moves": [
-      "e4",
-      "e5",
-      "Bc4",
-      "Bc5",
-      "c3",
-      "Nf6",
-      "d4",
-      "exd4",
-      "cxd4",
-      "Bb6",
-      "Nc3",
-      "O-O"
     ]
   },
   {
@@ -156,31 +126,15 @@
     ]
   },
   {
-    "id": "cambridge-springs-defense",
-    "name": "Cambridge Springs Defense",
+    "id": "budapest-gambit",
+    "name": "Budapest Gambit",
     "tags": [
-      "cambridge",
-      "springs",
-      "defense"
+      "budapest",
+      "gambit"
     ],
     "type": "open",
     "difficulty": "medium",
-    "ratingBand": "intermediate",
-    "eco": "D52",
-    "moves": [
-      "d4",
-      "Nf6",
-      "c4",
-      "e6",
-      "Nf3",
-      "Bb4",
-      "Bd2",
-      "Be7",
-      "Nc3",
-      "d5",
-      "Bg5",
-      "Nbd7"
-    ]
+    "ratingBand": "intermediate"
   },
   {
     "id": "caro-kann-defense",
@@ -233,61 +187,6 @@
       "Qa5",
       "Qd2",
       "Qxd2"
-    ]
-  },
-  {
-    "id": "center-game-and-north-gambit",
-    "name": "Center Game And North Gambit",
-    "tags": [
-      "center",
-      "game",
-      "north",
-      "gambit"
-    ],
-    "type": "open",
-    "difficulty": "medium",
-    "ratingBand": "intermediate",
-    "eco": "C21",
-    "moves": [
-      "e4",
-      "e5",
-      "d4",
-      "exd4",
-      "Bc4",
-      "c5",
-      "Nf3",
-      "d6",
-      "c3",
-      "dxc3",
-      "O-O",
-      "Be6"
-    ]
-  },
-  {
-    "id": "closed-spanish-marshall",
-    "name": "Closed Spanish Marshall",
-    "tags": [
-      "closed",
-      "spanish",
-      "marshall"
-    ],
-    "type": "open",
-    "difficulty": "easy",
-    "ratingBand": "beginner",
-    "eco": "C89",
-    "moves": [
-      "e4",
-      "Nf6",
-      "e5",
-      "Nd5",
-      "d4",
-      "d6",
-      "Nf3",
-      "dxe5",
-      "Nxe5",
-      "g6",
-      "Bc4",
-      "Be6"
     ]
   },
   {
@@ -369,57 +268,15 @@
     ]
   },
   {
-    "id": "evans-gambit",
-    "name": "Evans Gambit",
+    "id": "french-defense",
+    "name": "French Defense",
     "tags": [
-      "evans",
-      "gambit"
+      "french",
+      "defense"
     ],
     "type": "open",
-    "difficulty": "medium",
-    "ratingBand": "intermediate",
-    "eco": "C51",
-    "moves": [
-      "e4",
-      "e5",
-      "Bc4",
-      "Nc6",
-      "Nf3",
-      "Bc5",
-      "b4",
-      "Bxb4",
-      "c3",
-      "Bc5",
-      "d4",
-      "exd4"
-    ]
-  },
-  {
-    "id": "four-knights-game",
-    "name": "Four Knights Game",
-    "tags": [
-      "four",
-      "knights",
-      "game"
-    ],
-    "type": "open",
-    "difficulty": "easy",
-    "ratingBand": "beginner",
-    "eco": "C47",
-    "moves": [
-      "e4",
-      "Nf6",
-      "Nc3",
-      "d5",
-      "exd5",
-      "Nxd5",
-      "d3",
-      "Nc6",
-      "Nf3",
-      "e5",
-      "Be2",
-      "Bb4"
-    ]
+    "difficulty": "hard",
+    "ratingBand": "advanced"
   },
   {
     "id": "grunfeld-defense",
@@ -474,454 +331,62 @@
     ]
   },
   {
-    "id": "kings-indian-defense-averbakh-system",
-    "name": "Kings Indian Defense Averbakh System",
+    "id": "kings-gambit",
+    "name": "Kings Gambit",
     "tags": [
       "kings",
-      "indian",
-      "defense",
-      "averbakh",
-      "system"
-    ],
-    "type": "closed",
-    "difficulty": "medium",
-    "ratingBand": "intermediate",
-    "eco": "E73",
-    "moves": [
-      "d4",
-      "Nf6",
-      "c4",
-      "c5",
-      "d5",
-      "d6",
-      "Nc3",
-      "g6",
-      "e4",
-      "Bg7",
-      "Be2",
-      "O-O"
-    ]
-  },
-  {
-    "id": "kings-indian-defense-classical-system",
-    "name": "Kings Indian Defense Classical System",
-    "tags": [
-      "kings",
-      "indian",
-      "defense",
-      "classical",
-      "system"
-    ],
-    "type": "closed",
-    "difficulty": "hard",
-    "ratingBand": "advanced",
-    "eco": "E91",
-    "moves": [
-      "d4",
-      "Nf6",
-      "c4",
-      "c5",
-      "d5",
-      "d6",
-      "Nc3",
-      "g6",
-      "e4",
-      "Bg7",
-      "Nf3",
-      "O-O"
-    ]
-  },
-  {
-    "id": "kings-indian-defense-early-variations",
-    "name": "Kings Indian Defense Early Variations",
-    "tags": [
-      "kings",
-      "indian",
-      "defense",
-      "early",
-      "variations"
-    ],
-    "type": "closed",
-    "difficulty": "medium",
-    "ratingBand": "intermediate",
-    "eco": "E70",
-    "moves": [
-      "d4",
-      "Nf6",
-      "c4",
-      "c5",
-      "d5",
-      "d6",
-      "Nc3",
-      "g6",
-      "e4",
-      "Bg7",
-      "Bd3",
-      "O-O"
-    ]
-  },
-  {
-    "id": "kings-indian-defense-fianchetto",
-    "name": "Kings Indian Defense Fianchetto",
-    "tags": [
-      "kings",
-      "indian",
-      "defense",
-      "fianchetto"
-    ],
-    "type": "closed",
-    "difficulty": "medium",
-    "ratingBand": "intermediate",
-    "eco": "E61",
-    "moves": [
-      "e4",
-      "Nf6",
-      "e5",
-      "Nd5",
-      "d4",
-      "d6",
-      "Nf3",
-      "g6",
-      "exd6",
-      "cxd6",
-      "c4",
-      "Nf6"
-    ]
-  },
-  {
-    "id": "kings-indian-defense-four-pawns-attack",
-    "name": "Kings Indian Defense Four Pawns Attack",
-    "tags": [
-      "kings",
-      "indian",
-      "defense",
-      "four",
-      "pawns",
-      "attack"
-    ],
-    "type": "closed",
-    "difficulty": "medium",
-    "ratingBand": "intermediate",
-    "eco": "E76",
-    "moves": [
-      "d4",
-      "Nf6",
-      "c4",
-      "c5",
-      "d5",
-      "d6",
-      "Nc3",
-      "g6",
-      "e4",
-      "Bg7",
-      "f4",
-      "O-O"
-    ]
-  },
-  {
-    "id": "kings-indian-defense-samisch-system",
-    "name": "Kings Indian Defense Samisch System",
-    "tags": [
-      "kings",
-      "indian",
-      "defense",
-      "samisch",
-      "system"
-    ],
-    "type": "closed",
-    "difficulty": "medium",
-    "ratingBand": "intermediate",
-    "eco": "E80",
-    "moves": [
-      "d4",
-      "c5",
-      "d5",
-      "Nf6",
-      "c4",
-      "g6",
-      "Nc3",
-      "Bg7",
-      "e4",
-      "d6",
-      "f3",
-      "a6"
-    ]
-  },
-  {
-    "id": "kings-pawn-game-other",
-    "name": "Kings Pawn Game Other",
-    "tags": [
-      "kings",
-      "pawn",
-      "game"
+      "gambit"
     ],
     "type": "open",
-    "difficulty": "easy",
-    "ratingBand": "beginner",
-    "eco": "C20",
-    "moves": [
-      "e4",
-      "e5",
-      "Bc4",
-      "Nc6",
-      "Qh5",
-      "g6",
-      "Qf3",
-      "Nh6",
-      "d3",
-      "Bc5",
-      "Bxh6",
-      "Ne7"
-    ]
+    "difficulty": "medium",
+    "ratingBand": "advanced"
   },
   {
-    "id": "lasker-defense",
-    "name": "Lasker Defense",
+    "id": "kings-indian-defense",
+    "name": "Kings Indian Defense",
     "tags": [
-      "lasker",
+      "kings",
+      "indian",
       "defense"
     ],
-    "type": "open",
-    "difficulty": "medium",
-    "ratingBand": "intermediate",
-    "eco": "D57",
-    "moves": [
-      "d4",
-      "Nf6",
-      "c4",
-      "e6",
-      "Nf3",
-      "Bb4",
-      "Bd2",
-      "Be7",
-      "Nc3",
-      "d5",
-      "Bg5",
-      "O-O"
-    ]
+    "type": "semi-closed",
+    "difficulty": "hard",
+    "ratingBand": "advanced"
   },
   {
-    "id": "nimzo-indian-defense-general",
-    "name": "Nimzo Indian Defense General",
+    "id": "nimzo-indian-defense",
+    "name": "Nimzo Indian Defense",
     "tags": [
       "nimzo",
       "indian",
       "defense"
     ],
-    "type": "closed",
-    "difficulty": "medium",
-    "ratingBand": "intermediate",
-    "eco": "E20",
-    "moves": [
-      "d4",
-      "Nf6",
-      "c4",
-      "Nc6",
-      "Nf3",
-      "e6",
-      "Nc3",
-      "Bb4",
-      "g3",
-      "d5",
-      "Bg2",
-      "dxc4"
-    ]
-  },
-  {
-    "id": "nimzo-indian-defense-leningrad-variation",
-    "name": "Nimzo Indian Defense Leningrad Variation",
-    "tags": [
-      "nimzo",
-      "indian",
-      "defense",
-      "leningrad",
-      "variation"
-    ],
-    "type": "closed",
+    "type": "semi-closed",
     "difficulty": "hard",
-    "ratingBand": "advanced",
-    "eco": "E30",
-    "moves": [
-      "d4",
-      "Nf6",
-      "c4",
-      "Nc6",
-      "Nf3",
-      "e6",
-      "Nc3",
-      "Bb4",
-      "Bg5",
-      "h6",
-      "Bh4",
-      "g5"
-    ]
+    "ratingBand": "master"
   },
   {
-    "id": "nimzo-indian-defense-qc2-variations",
-    "name": "Nimzo Indian Defense Qc2 Variations",
-    "tags": [
-      "nimzo",
-      "indian",
-      "defense",
-      "qc2",
-      "variations"
-    ],
-    "type": "closed",
-    "difficulty": "medium",
-    "ratingBand": "intermediate",
-    "eco": "E37",
-    "moves": [
-      "d4",
-      "Nf6",
-      "c4",
-      "Nc6",
-      "Nf3",
-      "e6",
-      "Nc3",
-      "Bb4",
-      "Qc2",
-      "d5",
-      "a3",
-      "Bxc3"
-    ]
-  },
-  {
-    "id": "nimzo-indian-defense-rubinstein-system",
-    "name": "Nimzo Indian Defense Rubinstein System",
-    "tags": [
-      "nimzo",
-      "indian",
-      "defense",
-      "rubinstein",
-      "system"
-    ],
-    "type": "closed",
-    "difficulty": "hard",
-    "ratingBand": "advanced",
-    "eco": "E50",
-    "moves": [
-      "d4",
-      "Nf6",
-      "c4",
-      "Nc6",
-      "Nf3",
-      "e6",
-      "Nc3",
-      "Bb4",
-      "e3",
-      "O-O",
-      "Bd3",
-      "Qe7"
-    ]
-  },
-  {
-    "id": "nimzo-indian-defense-samisch-system",
-    "name": "Nimzo Indian Defense Samisch System",
-    "tags": [
-      "nimzo",
-      "indian",
-      "defense",
-      "samisch",
-      "system"
-    ],
-    "type": "closed",
-    "difficulty": "medium",
-    "ratingBand": "intermediate",
-    "eco": "E24",
-    "moves": [
-      "d4",
-      "Nf6",
-      "c4",
-      "e6",
-      "Nc3",
-      "Bb4",
-      "Nf3",
-      "c5",
-      "a3",
-      "Bxc3",
-      "bxc3",
-      "Qa5"
-    ]
-  },
-  {
-    "id": "open-games-other",
-    "name": "Open Games Other",
+    "id": "open-game-other",
+    "name": "Open Game Other",
     "tags": [
       "open",
-      "games"
+      "game",
+      "other"
     ],
     "type": "open",
     "difficulty": "easy",
-    "ratingBand": "beginner",
-    "eco": "C40",
-    "moves": [
-      "e4",
-      "e5",
-      "Bc4",
-      "f5",
-      "Nf3",
-      "fxe4",
-      "Nxe5",
-      "Qg5",
-      "d4",
-      "Qxg2",
-      "Qh5",
-      "g6"
-    ]
+    "ratingBand": "beginner"
   },
   {
-    "id": "open-spanish",
-    "name": "Open Spanish",
-    "tags": [
-      "open",
-      "spanish"
-    ],
-    "type": "open",
-    "difficulty": "easy",
-    "ratingBand": "beginner",
-    "eco": "C84",
-    "moves": [
-      "e4",
-      "e5",
-      "Bc4",
-      "Nf6",
-      "d3",
-      "Nc6",
-      "Nf3",
-      "Be7",
-      "O-O",
-      "O-O",
-      "Bb3",
-      "b5"
-    ]
-  },
-  {
-    "id": "owen-defense-and-nimzowitsch-defense",
-    "name": "Owen Defense And Nimzowitsch Defense",
+    "id": "owen-defense",
+    "name": "Owen Defense",
     "tags": [
       "owen",
-      "defense",
-      "nimzowitsch",
       "defense"
     ],
-    "type": "closed",
+    "type": "semi-closed",
     "difficulty": "medium",
-    "ratingBand": "intermediate",
-    "eco": "B00",
-    "moves": [
-      "e4",
-      "Nf6",
-      "Nc3",
-      "d5",
-      "d4",
-      "Nc6",
-      "e5",
-      "Ng8",
-      "Be3",
-      "Bf5",
-      "a3",
-      "e6"
-    ]
+    "ratingBand": "intermediate"
   },
   {
     "id": "petrov-defense",
@@ -976,112 +441,26 @@
     ]
   },
   {
-    "id": "qgd-exchange-and-5bf4-lines",
-    "name": "Qgd Exchange And 5bf4 Lines",
+    "id": "pirc-defense",
+    "name": "Pirc Defense",
     "tags": [
-      "qgd",
-      "exchange",
-      "5bf4"
+      "pirc",
+      "defense"
     ],
-    "type": "closed",
-    "difficulty": "easy",
-    "ratingBand": "beginner",
-    "eco": "D35",
-    "moves": [
-      "d4",
-      "Nf6",
-      "c4",
-      "Nc6",
-      "Nf3",
-      "e6",
-      "Nc3",
-      "d5",
-      "cxd5",
-      "exd5",
-      "Bg5",
-      "Be7"
-    ]
-  },
-  {
-    "id": "qgd-general",
-    "name": "Qgd General",
-    "tags": [
-      "qgd"
-    ],
-    "type": "closed",
-    "difficulty": "easy",
-    "ratingBand": "beginner",
-    "eco": "D51",
-    "moves": [
-      "d4",
-      "d5",
-      "Bg5",
-      "Nd7",
-      "c4",
-      "c6",
-      "cxd5",
-      "cxd5",
-      "Nc3",
-      "Ngf6",
-      "Nf3",
-      "e6"
-    ]
-  },
-  {
-    "id": "qgd-orthodox-early-deviations",
-    "name": "Qgd Orthodox Early Deviations",
-    "tags": [
-      "qgd",
-      "orthodox",
-      "early",
-      "deviations"
-    ],
-    "type": "closed",
-    "difficulty": "easy",
-    "ratingBand": "beginner",
-    "eco": "D53",
-    "moves": [
-      "d4",
-      "Nc6",
-      "c4",
-      "Nf6",
-      "Nc3",
-      "d5",
-      "Bg5",
-      "e6",
-      "e3",
-      "Be7",
-      "Bxf6",
-      "Bxf6"
-    ]
-  },
-  {
-    "id": "qgd-orthodox-main-line",
-    "name": "Qgd Orthodox Main Line",
-    "tags": [
-      "qgd",
-      "orthodox",
-      "main",
-      "line"
-    ],
-    "type": "closed",
+    "type": "semi-closed",
     "difficulty": "hard",
-    "ratingBand": "advanced",
-    "eco": "D64",
-    "moves": [
-      "d4",
-      "Nf6",
-      "c4",
-      "e6",
-      "Nf3",
-      "Bb4",
-      "Bd2",
-      "Be7",
-      "Nc3",
-      "d5",
-      "Bg5",
-      "O-O"
-    ]
+    "ratingBand": "advanced"
+  },
+  {
+    "id": "queens-gambit",
+    "name": "Queens Gambit",
+    "tags": [
+      "queens",
+      "gambit"
+    ],
+    "type": "open",
+    "difficulty": "medium",
+    "ratingBand": "advanced"
   },
   {
     "id": "queens-gambit-accepted",
@@ -1108,62 +487,6 @@
       "Be7",
       "Nc3",
       "O-O"
-    ]
-  },
-  {
-    "id": "queens-gambit-declined-early-without-nc3",
-    "name": "Queens Gambit Declined Early Without Nc3",
-    "tags": [
-      "queens",
-      "gambit",
-      "declined",
-      "early",
-      "nc3"
-    ],
-    "type": "closed",
-    "difficulty": "medium",
-    "ratingBand": "intermediate",
-    "eco": "D30",
-    "moves": [
-      "d4",
-      "Nf6",
-      "c4",
-      "e6",
-      "Nf3",
-      "Bb4",
-      "Nbd2",
-      "O-O",
-      "e3",
-      "d5",
-      "Bd3",
-      "Nbd7"
-    ]
-  },
-  {
-    "id": "queens-gambit-rare-lines",
-    "name": "Queens Gambit Rare Lines",
-    "tags": [
-      "queens",
-      "gambit",
-      "rare"
-    ],
-    "type": "closed",
-    "difficulty": "medium",
-    "ratingBand": "intermediate",
-    "eco": "D07",
-    "moves": [
-      "d4",
-      "Nf6",
-      "c4",
-      "Nc6",
-      "Nf3",
-      "d5",
-      "Nc3",
-      "Bg4",
-      "cxd5",
-      "Nxd5",
-      "e4",
-      "Nb6"
     ]
   },
   {
@@ -1221,59 +544,6 @@
     ]
   },
   {
-    "id": "queens-pawn-other-systems",
-    "name": "Queens Pawn Other Systems",
-    "tags": [
-      "queens",
-      "pawn",
-      "systems"
-    ],
-    "type": "closed",
-    "difficulty": "easy",
-    "ratingBand": "beginner",
-    "eco": "A43",
-    "moves": [
-      "d4",
-      "c5",
-      "d5",
-      "Nf6",
-      "c4",
-      "Qb6",
-      "Nc3",
-      "e6",
-      "e4",
-      "d6",
-      "f4",
-      "e5"
-    ]
-  },
-  {
-    "id": "ragozin-defense",
-    "name": "Ragozin Defense",
-    "tags": [
-      "ragozin",
-      "defense"
-    ],
-    "type": "closed",
-    "difficulty": "medium",
-    "ratingBand": "intermediate",
-    "eco": "D38",
-    "moves": [
-      "d4",
-      "d5",
-      "Nf3",
-      "Nf6",
-      "e3",
-      "e6",
-      "c4",
-      "Bb4",
-      "Nc3",
-      "Bxc3",
-      "bxc3",
-      "O-O"
-    ]
-  },
-  {
     "id": "reti-opening",
     "name": "Reti Opening",
     "tags": [
@@ -1326,32 +596,15 @@
     ]
   },
   {
-    "id": "scotch-game-and-scotch-gambit",
-    "name": "Scotch Game And Scotch Gambit",
+    "id": "scotch-game",
+    "name": "Scotch Game",
     "tags": [
       "scotch",
-      "game",
-      "scotch",
-      "gambit"
+      "game"
     ],
     "type": "open",
     "difficulty": "medium",
-    "ratingBand": "intermediate",
-    "eco": "C44",
-    "moves": [
-      "e4",
-      "e5",
-      "Bc4",
-      "Bc5",
-      "Nf3",
-      "Nc6",
-      "c3",
-      "d6",
-      "O-O",
-      "Bg4",
-      "d4",
-      "exd4"
-    ]
+    "ratingBand": "beginner"
   },
   {
     "id": "semi-slav-defense",
@@ -1408,6 +661,17 @@
     ]
   },
   {
+    "id": "sicilian-defense",
+    "name": "Sicilian Defense",
+    "tags": [
+      "sicilian",
+      "defense"
+    ],
+    "type": "open",
+    "difficulty": "hard",
+    "ratingBand": "master"
+  },
+  {
     "id": "slav-defense",
     "name": "Slav Defense",
     "tags": [
@@ -1434,114 +698,6 @@
     ]
   },
   {
-    "id": "spanish-exchange-and-related",
-    "name": "Spanish Exchange And Related",
-    "tags": [
-      "spanish",
-      "exchange",
-      "related"
-    ],
-    "type": "open",
-    "difficulty": "easy",
-    "ratingBand": "beginner",
-    "eco": "C68",
-    "moves": [
-      "e4",
-      "e5",
-      "d4",
-      "exd4",
-      "Nf3",
-      "Nc6",
-      "Bb5",
-      "a6",
-      "Bxc6",
-      "dxc6",
-      "Qxd4",
-      "Qxd4"
-    ]
-  },
-  {
-    "id": "spanish-game-other",
-    "name": "Spanish Game Other",
-    "tags": [
-      "spanish",
-      "game"
-    ],
-    "type": "open",
-    "difficulty": "easy",
-    "ratingBand": "beginner",
-    "eco": "C62",
-    "moves": [
-      "e4",
-      "e5",
-      "Bc4",
-      "d6",
-      "Nf3",
-      "Nc6",
-      "c3",
-      "Na5",
-      "Bb5",
-      "Nc6",
-      "d4",
-      "exd4"
-    ]
-  },
-  {
-    "id": "spanish-main-line-systems",
-    "name": "Spanish Main Line Systems",
-    "tags": [
-      "spanish",
-      "main",
-      "line",
-      "systems"
-    ],
-    "type": "open",
-    "difficulty": "hard",
-    "ratingBand": "advanced",
-    "eco": "C90",
-    "moves": [
-      "e4",
-      "e5",
-      "Bc4",
-      "Nf6",
-      "d3",
-      "Nc6",
-      "Nf3",
-      "Be7",
-      "O-O",
-      "d6",
-      "c3",
-      "O-O"
-    ]
-  },
-  {
-    "id": "spanish-steinitz-and-related",
-    "name": "Spanish Steinitz And Related",
-    "tags": [
-      "spanish",
-      "steinitz",
-      "related"
-    ],
-    "type": "open",
-    "difficulty": "easy",
-    "ratingBand": "beginner",
-    "eco": "C77",
-    "moves": [
-      "e4",
-      "e5",
-      "Bc4",
-      "Nc6",
-      "Nf3",
-      "Nf6",
-      "d3",
-      "Be7",
-      "Bb3",
-      "d6",
-      "c3",
-      "O-O"
-    ]
-  },
-  {
     "id": "tarrasch-defense",
     "name": "Tarrasch Defense",
     "tags": [
@@ -1565,59 +721,6 @@
       "Bxc5",
       "Nc3",
       "O-O"
-    ]
-  },
-  {
-    "id": "tartakower-defense",
-    "name": "Tartakower Defense",
-    "tags": [
-      "tartakower",
-      "defense"
-    ],
-    "type": "open",
-    "difficulty": "hard",
-    "ratingBand": "advanced",
-    "eco": "D58",
-    "moves": [
-      "d4",
-      "Nf6",
-      "c4",
-      "e6",
-      "Nf3",
-      "Bb4",
-      "Bd2",
-      "Be7",
-      "Nc3",
-      "d5",
-      "Bg5",
-      "h6"
-    ]
-  },
-  {
-    "id": "three-knights-game",
-    "name": "Three Knights Game",
-    "tags": [
-      "three",
-      "knights",
-      "game"
-    ],
-    "type": "open",
-    "difficulty": "easy",
-    "ratingBand": "beginner",
-    "eco": "C46",
-    "moves": [
-      "e4",
-      "e5",
-      "Bc4",
-      "Nc6",
-      "Nf3",
-      "Bc5",
-      "Nc3",
-      "a6",
-      "d3",
-      "d6",
-      "Be3",
-      "Nf6"
     ]
   },
   {
@@ -1648,54 +751,15 @@
     ]
   },
   {
-    "id": "unmatched",
-    "name": "Unmatched",
-    "tags": [
-      "unmatched"
-    ],
-    "type": "open",
-    "difficulty": "easy",
-    "ratingBand": "beginner",
-    "moves": [
-      "e4",
-      "Nf6",
-      "Nc3",
-      "d5",
-      "e5",
-      "Ne4",
-      "Nce2",
-      "Nc5",
-      "d4",
-      "Ne6",
-      "f4",
-      "g6"
-    ]
-  },
-  {
-    "id": "uncommon-and-other-openings",
-    "name": "Uncommon And Other Openings",
+    "id": "uncommon-openings",
+    "name": "Uncommon Openings",
     "tags": [
       "uncommon",
       "openings"
     ],
     "type": "open",
-    "difficulty": "easy",
-    "ratingBand": "beginner",
-    "eco": "A00",
-    "moves": [
-      "e4",
-      "Nf6",
-      "Nc3",
-      "d5",
-      "exd5",
-      "Nxd5",
-      "Nf3",
-      "Bg4",
-      "Bc4",
-      "e6",
-      "O-O",
-      "Nb6"
-    ]
+    "difficulty": "medium",
+    "ratingBand": "intermediate"
   },
   {
     "id": "vienna-game",
