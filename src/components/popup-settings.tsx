@@ -3,12 +3,10 @@
 import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
 import { type RatingRange, ratingLabels } from "@/lib/chess-data";
-import { ChevronRight, Globe, Eye, Info } from "lucide-react";
+import { ChevronRight, Info } from "lucide-react";
 import type { PerformanceMode } from "@/shared/types";
 
 export function PopupSettings() {
-  const [autoDetect, setAutoDetect] = useState(true);
-  const [showHints, setShowHints] = useState(false);
   const [performanceMode, setPerformanceMode] = useState<PerformanceMode>("standard");
   const [selectedRating, setSelectedRating] = useState<RatingRange>("1000-1300");
 
@@ -18,28 +16,12 @@ export function PopupSettings() {
       return;
     }
 
-    runtime.sendMessage({ type: "hints:get" }, (response) => {
-      if (response?.ok) {
-        setShowHints(Boolean(response.payload));
-      }
-    });
-
     runtime.sendMessage({ type: "performance:get" }, (response) => {
       if (response?.ok && (response.payload === "standard" || response.payload === "economy")) {
         setPerformanceMode(response.payload);
       }
     });
   }, []);
-
-  const toggleHints = () => {
-    const next = !showHints;
-    setShowHints(next);
-    const runtime = globalThis.chrome?.runtime;
-    if (!runtime?.sendMessage) {
-      return;
-    }
-    runtime.sendMessage({ type: "hints:set", payload: { enabled: next } });
-  };
 
   const changePerformanceMode = (next: PerformanceMode) => {
     if (next === performanceMode) {
@@ -94,24 +76,6 @@ export function PopupSettings() {
           </div>
         </div>
 
-        {/* Toggle settings */}
-        <div className="rounded-xl bg-card border border-border/50 divide-y divide-border/30">
-          <ToggleRow
-            icon={<Globe className="w-4 h-4" />}
-            label="Автоопределение"
-            description="Автоматически определять игру на chess.com"
-            checked={autoDetect}
-            onToggle={() => setAutoDetect(!autoDetect)}
-          />
-          <ToggleRow
-            icon={<Eye className="w-4 h-4" />}
-            label="Подсказки ходов"
-            description="Показывать рекомендации во время игры"
-            checked={showHints}
-            onToggle={toggleHints}
-          />
-        </div>
-
         <div className="rounded-xl bg-card border border-border/50 overflow-hidden">
           <div className="px-3 py-2.5 border-b border-border/50">
             <span className="text-xs font-medium text-foreground">Производительность</span>
@@ -162,54 +126,12 @@ export function PopupSettings() {
             </div>
             <div className="flex-1">
               <span className="text-xs font-medium text-foreground">lineMaster</span>
-              <p className="text-[10px] text-muted-foreground">v0.1.0 beta</p>
+              <p className="text-[10px] text-muted-foreground">v0.12.0 beta</p>
             </div>
             <ChevronRight className="w-4 h-4 text-muted-foreground/40" />
           </div>
         </div>
       </div>
-    </div>
-  );
-}
-
-function ToggleRow({
-  icon,
-  label,
-  description,
-  checked,
-  onToggle,
-}: {
-  icon: React.ReactNode;
-  label: string;
-  description: string;
-  checked: boolean;
-  onToggle: () => void;
-}) {
-  return (
-    <div className="flex items-center gap-3 px-3 py-3">
-      <div className="w-8 h-8 rounded-lg bg-secondary/80 flex items-center justify-center text-muted-foreground shrink-0">
-        {icon}
-      </div>
-      <div className="flex-1 min-w-0">
-        <span className="text-xs font-medium text-foreground block">{label}</span>
-        <span className="text-[10px] text-muted-foreground">{description}</span>
-      </div>
-      <button
-        type="button"
-        onClick={onToggle}
-        className={cn(
-          "w-9 h-5 rounded-full transition-all duration-200 relative shrink-0",
-          checked ? "bg-primary" : "bg-secondary"
-        )}
-        aria-label={`Toggle ${label}`}
-      >
-        <div
-          className={cn(
-            "w-4 h-4 rounded-full bg-background absolute top-0.5 transition-all duration-200 shadow-sm",
-            checked ? "left-[18px]" : "left-0.5"
-          )}
-        />
-      </button>
     </div>
   );
 }

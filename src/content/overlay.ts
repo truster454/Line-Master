@@ -2,10 +2,12 @@ import type { PositionInsight } from '../shared/types'
 
 const OVERLAY_ID = 'line-master-board-overlay'
 const MOVE_COLORS = ['#2563eb', '#dc2626', '#16a34a']
+const PREFERRED_MOVE_COLOR = '#facc15'
 
 let lastMoves: string[] = []
 let lastMovesKey = ''
 let lastDrawKey = ''
+let lastPreferredMove: string | null = null
 let rerenderScheduled = false
 
 function parseSquare(square: string): { file: number; rank: number } | null {
@@ -111,7 +113,15 @@ function geometryKey(rect: DOMRect, flipped: boolean): string {
   return `${rect.left.toFixed(1)}|${rect.top.toFixed(1)}|${rect.width.toFixed(1)}|${rect.height.toFixed(1)}|${flipped ? 1 : 0}`
 }
 
-function drawMoves(uciMoves: string[]): void {
+function getStarIconUrl(): string | null {
+  const runtime = globalThis.chrome?.runtime
+  if (!runtime?.getURL) {
+    return null
+  }
+  return runtime.getURL('images/star.png')
+}
+
+function drawMoves(uciMoves: string[], preferredMoveUci: string | null): void {
   const board = getBoardElement()
   if (!board || uciMoves.length === 0) {
     clearOverlay()
@@ -125,7 +135,7 @@ function drawMoves(uciMoves: string[]): void {
   }
 
   const flipped = isFlipped(board)
-  const drawKey = `${uciMoves.join(',')}|${geometryKey(rect, flipped)}`
+  const drawKey = `${uciMoves.join(',')}|${preferredMoveUci ?? ''}|${geometryKey(rect, flipped)}`
   if (drawKey === lastDrawKey) {
     return
   }
@@ -139,6 +149,8 @@ function drawMoves(uciMoves: string[]): void {
   const fontSize = Math.max(10, rect.width * 0.028)
   const labelStrokeWidth = Math.max(1, rect.width * 0.003)
   const cellSize = rect.width / 8
+  const starSize = Math.max(12, rect.width * 0.042)
+  const starIconUrl = getStarIconUrl()
 
   const parsedMoves = uciMoves
     .map((uci, index) => {
@@ -187,6 +199,8 @@ function drawMoves(uciMoves: string[]): void {
       continue
     }
     const color = MOVE_COLORS[move.index % MOVE_COLORS.length]
+    const isPreferred = preferredMoveUci === move.uci
+    const effectiveColor = isPreferred ? PREFERRED_MOVE_COLOR : color
     const offset = labelOffsets.get(move.index) ?? { x: 0, y: 0 }
     const labelX = to.x + offset.x
     const labelY = to.y + offset.y
@@ -196,19 +210,19 @@ function drawMoves(uciMoves: string[]): void {
     line.setAttribute('y1', from.y.toString())
     line.setAttribute('x2', to.x.toString())
     line.setAttribute('y2', to.y.toString())
-    line.setAttribute('stroke', color)
+    line.setAttribute('stroke', effectiveColor)
     line.setAttribute('stroke-width', strokeWidth.toString())
     line.setAttribute('stroke-linecap', 'round')
-    line.setAttribute('opacity', Math.max(0.2, 0.75 - move.index * 0.06).toString())
+    line.setAttribute('opacity', isPreferred ? '0.95' : Math.max(0.2, 0.75 - move.index * 0.06).toString())
 
     const target = document.createElementNS('http://www.w3.org/2000/svg', 'circle')
     target.setAttribute('cx', labelX.toString())
     target.setAttribute('cy', labelY.toString())
     target.setAttribute('r', targetRadius.toString())
     target.setAttribute('fill', '#ffffff')
-    target.setAttribute('stroke', color)
+    target.setAttribute('stroke', effectiveColor)
     target.setAttribute('stroke-width', Math.max(1.25, rect.width * 0.0035).toString())
-    target.setAttribute('opacity', Math.max(0.3, 0.9 - move.index * 0.05).toString())
+    target.setAttribute('opacity', isPreferred ? '0.95' : Math.max(0.3, 0.9 - move.index * 0.05).toString())
 
     const label = document.createElementNS('http://www.w3.org/2000/svg', 'text')
     label.setAttribute('x', labelX.toString())
@@ -217,15 +231,31 @@ function drawMoves(uciMoves: string[]): void {
     label.setAttribute('dominant-baseline', 'central')
     label.setAttribute('font-size', fontSize.toString())
     label.setAttribute('font-weight', '700')
-    label.setAttribute('fill', color)
+    label.setAttribute('fill', effectiveColor)
     label.setAttribute('stroke', '#ffffff')
     label.setAttribute('stroke-width', labelStrokeWidth.toString())
     label.setAttribute('paint-order', 'stroke')
-    label.textContent = String(move.rank)
+    label.textContent = isPreferred ? '' : String(move.rank)
 
     overlay.appendChild(line)
     overlay.appendChild(target)
-    overlay.appendChild(label)
+    if (isPreferred && starIconUrl) {
+      const icon = document.createElementNS('http://www.w3.org/2000/svg', 'image')
+      icon.setAttributeNS('http://www.w3.org/1999/xlink', 'xlink:href', starIconUrl)
+      icon.setAttribute('href', starIconUrl)
+      icon.setAttribute('x', String(labelX - starSize / 2))
+      icon.setAttribute('y', String(labelY - starSize / 2))
+      icon.setAttribute('width', String(starSize))
+      icon.setAttribute('height', String(starSize))
+      icon.setAttribute('preserveAspectRatio', 'xMidYMid meet')
+      icon.setAttribute('opacity', '0.95')
+      overlay.appendChild(icon)
+    } else if (isPreferred) {
+      label.textContent = '★'
+      overlay.appendChild(label)
+    } else {
+      overlay.appendChild(label)
+    }
   }
 
   if (overlay.childElementCount === 0) {
@@ -240,6 +270,7 @@ export function updateBoardSuggestion(
   if (!insight?.hintsEnabled) {
     lastMoves = []
     lastMovesKey = ''
+    lastPreferredMove = null
     clearOverlay()
     return
   }
@@ -247,26 +278,34 @@ export function updateBoardSuggestion(
   const moves = (insight?.theoreticalMoves ?? [])
     .map((entry) => entry.uci)
     .filter((uci) => /^[a-h][1-8][a-h][1-8][nbrq]?$/.test(uci))
+  const preferredMove = insight?.favoriteBookMoveUci ?? null
+
+  const orderedMoves =
+    preferredMove && moves.includes(preferredMove)
+      ? [preferredMove, ...moves.filter((uci) => uci !== preferredMove)]
+      : moves
 
   const maxMoves = options?.maxMoves ?? Number.MAX_SAFE_INTEGER
-  const limitedMoves = maxMoves > 0 ? moves.slice(0, maxMoves) : []
+  const limitedMoves = maxMoves > 0 ? orderedMoves.slice(0, maxMoves) : []
 
   if (limitedMoves.length === 0) {
     lastMoves = []
     lastMovesKey = ''
+    lastPreferredMove = null
     clearOverlay()
     return
   }
 
   const movesKey = limitedMoves.join(',')
   const hasOverlay = Boolean(document.getElementById(OVERLAY_ID))
-  if (movesKey === lastMovesKey && hasOverlay) {
+  if (movesKey === lastMovesKey && preferredMove === lastPreferredMove && hasOverlay) {
     return
   }
 
   lastMoves = limitedMoves
   lastMovesKey = movesKey
-  drawMoves(limitedMoves)
+  lastPreferredMove = preferredMove
+  drawMoves(limitedMoves, preferredMove)
 }
 
 export function setupOverlayAutoRefresh(): void {
@@ -278,7 +317,7 @@ export function setupOverlayAutoRefresh(): void {
     window.requestAnimationFrame(() => {
       rerenderScheduled = false
       if (lastMoves.length > 0) {
-        drawMoves(lastMoves)
+        drawMoves(lastMoves, lastPreferredMove)
       }
     })
   }

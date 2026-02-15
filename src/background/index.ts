@@ -14,6 +14,9 @@ let hintsEnabled = false
 let performanceMode: PerformanceMode = 'standard'
 let settingsReady = false
 let settingsLoadInFlight: Promise<void> | null = null
+let favoritesReady = false
+let favoritesLoadInFlight: Promise<void> | null = null
+let favoriteIds = new Set<string>()
 
 const CLASSIFICATION_LINE_RE = /^(\S+)\s{2,}(.+?)\s{2,}(.+?)\s{2,}(.+?)\s{2,}(.+)$/
 const RUS_NAME_BY_BOOK_FILE = new Map<string, string>()
@@ -101,10 +104,38 @@ function bookNameFromPath(path: string): string {
     .trim()
 }
 
-function aggregateMoves(hits: Awaited<ReturnType<OpeningsService['lookupAllBooksByFen']>>): TheoreticalMove[] {
-  const byMove = new Map<string, TheoreticalMove>()
+async function refreshFavoritesFromStorage(force = false): Promise<void> {
+  if (favoritesReady && !force) {
+    return
+  }
+
+  if (!favoritesLoadInFlight) {
+    favoritesLoadInFlight = (async () => {
+      const stored = await favoritesRepo.list()
+      favoriteIds = new Set(stored)
+      favoritesReady = true
+    })().finally(() => {
+      favoritesLoadInFlight = null
+    })
+  }
+
+  await favoritesLoadInFlight
+}
+
+function aggregateMoves(
+  hits: Awaited<ReturnType<OpeningsService['lookupAllBooksByFen']>>,
+  favorites: Set<string>
+): TheoreticalMove[] {
+  const byMove = new Map<
+    string,
+    TheoreticalMove & {
+      firstSeenIndex: number
+    }
+  >()
+  let seenIndex = 0
 
   for (const hit of hits) {
+    const isFavoriteBook = favorites.has(hit.openingId)
     for (const candidate of hit.lookup.candidates) {
       const existing = byMove.get(candidate.uci)
       if (!existing) {
@@ -112,12 +143,18 @@ function aggregateMoves(hits: Awaited<ReturnType<OpeningsService['lookupAllBooks
           uci: candidate.uci,
           totalWeight: candidate.weight,
           booksCount: 1,
+          favoriteBooksCount: isFavoriteBook ? 1 : 0,
+          firstSeenIndex: seenIndex,
           openingIds: [hit.openingId]
         })
+        seenIndex += 1
         continue
       }
 
       existing.totalWeight += candidate.weight
+      if (isFavoriteBook) {
+        existing.favoriteBooksCount += 1
+      }
       if (!existing.openingIds.includes(hit.openingId)) {
         existing.openingIds.push(hit.openingId)
         existing.booksCount += 1
@@ -125,10 +162,43 @@ function aggregateMoves(hits: Awaited<ReturnType<OpeningsService['lookupAllBooks
     }
   }
 
-  return [...byMove.values()].sort((a, b) => b.totalWeight - a.totalWeight)
+  return [...byMove.values()]
+    .sort((a, b) => {
+      if (a.favoriteBooksCount !== b.favoriteBooksCount) {
+        return b.favoriteBooksCount - a.favoriteBooksCount
+      }
+      if (a.totalWeight !== b.totalWeight) {
+        return b.totalWeight - a.totalWeight
+      }
+      return a.firstSeenIndex - b.firstSeenIndex
+    })
+    .map(({ firstSeenIndex, ...rest }) => rest)
+}
+
+function selectPrimaryHit(
+  hits: Awaited<ReturnType<OpeningsService['lookupAllBooksByFen']>>,
+  favorites: Set<string>
+): { hit: (typeof hits)[number]; fromFavorite: boolean } {
+  let best: (typeof hits)[number] | null = null
+  let bestRank = -1
+  let bestWeight = -1
+
+  for (const hit of hits) {
+    const rank = favorites.has(hit.openingId) ? 1 : 0
+    const weight = hit.lookup.best?.weight ?? 0
+    if (rank > bestRank || (rank === bestRank && weight > bestWeight)) {
+      best = hit
+      bestRank = rank
+      bestWeight = weight
+    }
+  }
+
+  const hit = best ?? hits[0]
+  return { hit, fromFavorite: favorites.has(hit.openingId) }
 }
 
 async function computeInsight(snapshot: PositionSnapshot | null): Promise<PositionInsight> {
+  await refreshFavoritesFromStorage()
   const enabled = hintsEnabled
   if (!snapshot) {
     return {
@@ -168,14 +238,18 @@ async function computeInsight(snapshot: PositionSnapshot | null): Promise<Positi
       }
     }
 
-    const theoreticalMoves = aggregateMoves(hits)
-    const topHit = hits[0]
+    const theoreticalMoves = aggregateMoves(hits, favoriteIds)
+    const primary = selectPrimaryHit(hits, favoriteIds)
+    const topHit = primary.hit
+    const selectedMove = topHit.lookup.best?.uci ?? theoreticalMoves[0]?.uci
+    const favoriteBookMoveUci = primary.fromFavorite ? selectedMove : undefined
 
     return {
       snapshot,
       openingId: topHit.opening?.id,
       openingName: bookNameFromPath(topHit.path) || topHit.opening?.name,
-      bookMoveUci: theoreticalMoves[0]?.uci,
+      bookMoveUci: selectedMove,
+      favoriteBookMoveUci,
       theoreticalMoves,
       matchedBooks: hits.length,
       hintsEnabled: enabled,
@@ -206,6 +280,14 @@ async function broadcastInsight(insight: PositionInsight): Promise<void> {
   }
 }
 
+async function broadcastFavoritesState(): Promise<void> {
+  try {
+    await chrome.runtime.sendMessage({ type: 'favorites:state', payload: [...favoriteIds] })
+  } catch {
+    // popup may be closed; ignore.
+  }
+}
+
 chrome.runtime.onInstalled.addListener(() => {
   log.info('Service worker installed')
 })
@@ -221,6 +303,7 @@ void loadPerformanceMode().then((value) => {
 })
 
 void refreshSettingsFromStorage(true)
+void refreshFavoritesFromStorage(true)
 
 chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
   if (message?.type === 'ping') {
@@ -295,23 +378,44 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
   }
 
   if (message?.type === 'favorites:list') {
-    void favoritesRepo.list().then((favorites) => {
-      sendResponse({ ok: true, payload: favorites })
+    void (async () => {
+      await refreshFavoritesFromStorage()
+      sendResponse({ ok: true, payload: [...favoriteIds] })
     })
     return true
   }
 
   if (message?.type === 'favorites:add') {
-    void favoritesRepo.add(message.payload?.id as string).then(() => {
+    void (async () => {
+      const id = String(message.payload?.id ?? '')
+      if (id) {
+        await favoritesRepo.add(id)
+      }
+      await refreshFavoritesFromStorage(true)
+      await broadcastFavoritesState()
+      if (latestInsight.snapshot) {
+        const refreshed = await computeInsight(latestInsight.snapshot)
+        await broadcastInsight(refreshed)
+      }
       sendResponse({ ok: true })
-    })
+    })()
     return true
   }
 
   if (message?.type === 'favorites:remove') {
-    void favoritesRepo.remove(message.payload?.id as string).then(() => {
+    void (async () => {
+      const id = String(message.payload?.id ?? '')
+      if (id) {
+        await favoritesRepo.remove(id)
+      }
+      await refreshFavoritesFromStorage(true)
+      await broadcastFavoritesState()
+      if (latestInsight.snapshot) {
+        const refreshed = await computeInsight(latestInsight.snapshot)
+        await broadcastInsight(refreshed)
+      }
       sendResponse({ ok: true })
-    })
+    })()
     return true
   }
 

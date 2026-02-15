@@ -289,6 +289,106 @@ This file is for me (the agent). It should be enough to understand the repo with
   - `public/manifest.json` web-accessible resources include nested `books/*/*.bin`
   - `scripts/import-polyglot-books.mjs` defaults to importing into `public/books/general` and writes `books/general/...` paths.
 
+## Completed Work (2026-02-15, UI/library integration and cleanup)
+### 1) Separate import pipeline for Polyglot books
+- Added dedicated importer script:
+  - `scripts/import-polyglot-books.mjs`
+- Importer now performs:
+  - source scan of `.bin` books,
+  - Polyglot binary validation (non-empty, 16-byte alignment, sorted keys),
+  - copy to extension assets,
+  - stale-file cleanup in destination,
+  - regeneration of `src/data/books.index.json`,
+  - regeneration of `src/data/openings.index.json`,
+  - strict consistency checks against `src/data/openings.json`.
+- Added npm commands:
+  - `npm run books:import`
+  - `npm run books:import:dry`
+
+### 2) Critical Polyglot hashing fix (missing moves after early plies)
+- Fixed incorrect Polyglot Zobrist mapping in:
+  - `src/core/books/service.ts`
+- Changes:
+  - corrected `PIECE_TO_INDEX` ordering to match Polyglot/python-chess conventions,
+  - removed incorrect square flipping in key computation.
+- Result:
+  - key calculation matches python-chess,
+  - book move lookup now matches expected candidates/weights on tested QGD positions.
+
+### 3) Overlay improvements for move ranking visibility
+- Updated `src/content/overlay.ts`:
+  - target circles now include rank number (`1` = most frequent move, then `2`, `3`, ...),
+  - line + circle + number colorized in rotating palette (blue/red/green),
+  - overlapping target squares get label offsets to avoid collisions.
+
+### 4) Runtime performance hardening (safe mode)
+- Optimized without changing core recommendation behavior:
+  - `src/content/index.ts`:
+    - queued/debounced position reporting,
+    - in-flight guards,
+    - reduced observer noise (`attributes: false`),
+    - split intervals for position polling and hints sync,
+    - visibility/focus-driven forced sync.
+  - `src/content/overlay.ts`:
+    - requestAnimationFrame throttling for resize/scroll refresh,
+    - redraw deduplication by moves + board geometry.
+
+### 5) Home screen info simplification
+- Simplified bottom info card in:
+  - `src/components/home-screen.tsx`
+- Now shows only debut title (no FEN, source, status, matched books, move list).
+- Removed ECO suffix from this display.
+- Main-screen debut name source switched to human-readable labels from classification mapping.
+
+### 6) Human-readable debut names from classification file
+- Updated `src/background/index.ts`:
+  - loads `src/data/openings.classification.txt`,
+  - maps `book.bin` -> Russian title,
+  - uses mapped Russian title in `PositionInsight.openingName`,
+  - fallback: filename stem with underscores replaced by spaces.
+
+### 7) Library screen rewritten to real classification data
+- Rebuilt `src/components/popup-library.tsx` to use:
+  - `src/data/openings.classification.txt`,
+  - `src/data/books.index.json`,
+  - `src/data/openings.json` (for optional move preview fallback).
+- Added top tabs:
+  - `Общие` (active data-driven view),
+  - `Подробные` (placeholder for future presets).
+- General tab behavior:
+  - categories rendered from classification,
+  - search by Russian/English/file name,
+  - category counters,
+  - opening cards show difficulty + rating (ECO removed),
+  - fake/mock openings removed from this screen.
+
+### 8) Classification updates and category corrections
+- Updated `src/data/openings.classification.txt`:
+  - moved to `Gambits`:
+    - `Queens_Gambit.bin`
+    - `Queens_Gambit_Accepted.bin`
+    - `Budapest_Gambit.bin`
+  - `Trap openings` intentionally left empty.
+
+### 9) Settings screen cleanup
+- Removed the toggle block from:
+  - `src/components/popup-settings.tsx`
+- Deleted UI rows:
+  - `Автоопределение`
+  - `Подсказки ходов`
+- Kept other settings sections intact.
+
+### 10) Category icon updates (Library)
+- Updated icons in `src/components/popup-library.tsx`:
+  - swapped `Гипермодерн` and `Системные`,
+  - set `Классические` to `/images/best.png`,
+  - set `Фланговые` to `/images/inaccuracy.png`.
+
+### 11) Library card polish
+- Removed placeholder dash (`—`) for openings without preview moves in:
+  - `src/components/popup-library.tsx`
+- Move preview line now hides when data is absent.
+
 ## Agent Notes
 - Prefer `rg` for search.
 - Prefer `apply_patch` for single-file edits.

@@ -11,6 +11,7 @@ export interface TheoreticalMove {
   uci: string
   totalWeight: number
   booksCount: number
+  favoriteBooksCount: number
   openingIds: string[]
 }
 
@@ -22,6 +23,7 @@ export interface PositionInsight {
   openingName?: string
   openingEco?: string
   bookMoveUci?: string
+  favoriteBookMoveUci?: string
   theoreticalMoves: TheoreticalMove[]
   matchedBooks: number
   hintsEnabled: boolean

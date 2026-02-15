@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { cn } from "@/lib/utils";
 import openingsJson from "@/data/openings.json";
 import booksIndexJson from "@/data/books.index.json";
@@ -27,7 +27,7 @@ interface LibraryOpening {
   category: CategoryKey;
   ratingRange: string;
   difficultyKey: string;
-  movesPreview: string;
+  movesPreview?: string;
 }
 
 const CATEGORY_ORDER: CategoryKey[] = [
@@ -61,12 +61,12 @@ const CATEGORY_DESCRIPTIONS: Record<CategoryKey, string> = {
 };
 
 const CATEGORY_ICON_BY_KEY: Record<CategoryKey, string> = {
-  classical: "/images/decent.png",
+  classical: "/images/best.png",
   gambit: "/images/brilliant.png",
   countergambit: "/images/great.png",
-  hypermodern: "/images/teoretical.png",
-  system: "/images/good.png",
-  flank: "/images/mistake.png",
+  hypermodern: "/images/good.png",
+  system: "/images/teoretical.png",
+  flank: "/images/inaccuracy.png",
   trap: "/images/blunder.png",
 };
 
@@ -144,7 +144,7 @@ function buildLibraryOpenings(): LibraryOpening[] {
   const openingIdByBookFile = new Map<string, string>();
 
   for (const [openingId, path] of Object.entries(booksIndex)) {
-    const bookFile = path.replace(/^books\//, "");
+    const bookFile = path.split("/").pop() ?? path;
     openingIdByBookFile.set(bookFile, openingId);
   }
 
@@ -174,7 +174,7 @@ function buildLibraryOpenings(): LibraryOpening[] {
       category,
       ratingRange,
       difficultyKey: difficulty,
-      movesPreview: (opening?.moves ?? []).slice(0, 6).join(" ") || "—",
+      movesPreview: (opening?.moves ?? []).slice(0, 6).join(" ") || undefined,
     });
   }
 
@@ -189,6 +189,31 @@ export function PopupLibrary() {
   const [selectedCategory, setSelectedCategory] = useState<CategoryKey | null>(null);
   const [selectedOpening, setSelectedOpening] = useState<LibraryOpening | null>(null);
   const [favoriteIds, setFavoriteIds] = useState<Set<string>>(new Set());
+
+  useEffect(() => {
+    const runtime = globalThis.chrome?.runtime;
+    if (!runtime?.sendMessage) {
+      return;
+    }
+    runtime.sendMessage({ type: "favorites:list" }, (response) => {
+      if (!response?.ok || !Array.isArray(response.payload)) {
+        return;
+      }
+      setFavoriteIds(new Set(response.payload as string[]));
+    });
+
+    const onMessage = (message: unknown) => {
+      const payload = message as { type?: string; payload?: string[] };
+      if (payload.type === "favorites:state" && Array.isArray(payload.payload)) {
+        setFavoriteIds(new Set(payload.payload));
+      }
+    };
+
+    runtime.onMessage.addListener(onMessage);
+    return () => {
+      runtime.onMessage.removeListener(onMessage);
+    };
+  }, []);
 
   const openingsData = GENERAL_OPENINGS;
 
@@ -233,10 +258,19 @@ export function PopupLibrary() {
   const toggleFavorite = (id: string): void => {
     setFavoriteIds((prev) => {
       const next = new Set(prev);
-      if (next.has(id)) {
+      const remove = next.has(id);
+      if (remove) {
         next.delete(id);
       } else {
         next.add(id);
+      }
+
+      const runtime = globalThis.chrome?.runtime;
+      if (runtime?.sendMessage) {
+        runtime.sendMessage({
+          type: remove ? "favorites:remove" : "favorites:add",
+          payload: { id },
+        });
       }
       return next;
     });
@@ -264,7 +298,9 @@ export function PopupLibrary() {
             </div>
             <h2 className="text-xl font-bold text-foreground leading-tight">{selectedOpening.nameRu}</h2>
             <p className="text-xs text-muted-foreground mt-1">{selectedOpening.nameEn}</p>
-            <p className="text-sm font-mono text-foreground/80 mt-3">{selectedOpening.movesPreview}</p>
+            {selectedOpening.movesPreview && (
+              <p className="text-sm font-mono text-foreground/80 mt-3">{selectedOpening.movesPreview}</p>
+            )}
           </div>
         </div>
       </div>
@@ -400,7 +436,9 @@ export function PopupLibrary() {
                     </div>
 
                     <p className="text-sm font-semibold text-foreground truncate">{opening.nameRu}</p>
-                    <p className="text-[10px] text-muted-foreground mt-1 truncate">{opening.movesPreview}</p>
+                    {opening.movesPreview && (
+                      <p className="text-[10px] text-muted-foreground mt-1 truncate">{opening.movesPreview}</p>
+                    )}
                   </div>
                   <button
                     type="button"
