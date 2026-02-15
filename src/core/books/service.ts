@@ -46,19 +46,21 @@ export interface BookLookupHit {
 }
 
 const BOOK_ENTRY_SIZE = 16
+// Polyglot piece ordering follows python-chess/chess-polyglot:
+// black, white for each piece type (pawn, knight, bishop, rook, queen, king).
 const PIECE_TO_INDEX: Record<Piece, number> = {
-  P: 0,
-  p: 1,
-  N: 2,
-  n: 3,
-  B: 4,
-  b: 5,
-  R: 6,
-  r: 7,
-  Q: 8,
-  q: 9,
-  K: 10,
-  k: 11
+  p: 0,
+  P: 1,
+  n: 2,
+  N: 3,
+  b: 4,
+  B: 5,
+  r: 6,
+  R: 7,
+  q: 8,
+  Q: 9,
+  k: 10,
+  K: 11
 }
 
 const booksIndex = booksIndexData as BooksIndex
@@ -160,12 +162,6 @@ function parseFen(fen: string): ParsedFen | null {
   }
 }
 
-function toPolyglotSquare(square: number): number {
-  const file = square % 8
-  const rankFromWhite = Math.floor(square / 8)
-  return (7 - rankFromWhite) * 8 + file
-}
-
 function hasPawnForEpCapture(board: Array<Piece | null>, activeColor: 'w' | 'b', epSquare: number): boolean {
   const file = epSquare % 8
   const rank = Math.floor(epSquare / 8)
@@ -196,8 +192,7 @@ function computePolyglotKey(parsedFen: ParsedFen): bigint {
       continue
     }
     const pieceOffset = PIECE_TO_INDEX[piece] * 64
-    const polySquare = toPolyglotSquare(square)
-    key ^= POLYGLOT_RANDOM[pieceOffset + polySquare]
+    key ^= POLYGLOT_RANDOM[pieceOffset + square]
   }
 
   if (parsedFen.castling.includes('K')) {

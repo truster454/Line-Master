@@ -6,7 +6,9 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "books:import": "node scripts/import-polyglot-books.mjs",
+    "books:import:dry": "node scripts/import-polyglot-books.mjs --dry-run"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.1",
