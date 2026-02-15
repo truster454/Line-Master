@@ -14,6 +14,8 @@ export interface TheoreticalMove {
   openingIds: string[]
 }
 
+export type PerformanceMode = 'standard' | 'economy'
+
 export interface PositionInsight {
   snapshot: PositionSnapshot | null
   openingId?: string
@@ -23,6 +25,7 @@ export interface PositionInsight {
   theoreticalMoves: TheoreticalMove[]
   matchedBooks: number
   hintsEnabled: boolean
+  performanceMode: PerformanceMode
   bookStatus: 'position-not-detected' | 'fen-missing' | 'book-not-found' | 'move-found' | 'move-not-found' | 'book-load-error'
   error?: string
   updatedAt: number

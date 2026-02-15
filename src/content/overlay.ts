@@ -233,7 +233,10 @@ function drawMoves(uciMoves: string[]): void {
   }
 }
 
-export function updateBoardSuggestion(insight: PositionInsight | null | undefined): void {
+export function updateBoardSuggestion(
+  insight: PositionInsight | null | undefined,
+  options?: { maxMoves?: number }
+): void {
   if (!insight?.hintsEnabled) {
     lastMoves = []
     lastMovesKey = ''
@@ -245,22 +248,25 @@ export function updateBoardSuggestion(insight: PositionInsight | null | undefine
     .map((entry) => entry.uci)
     .filter((uci) => /^[a-h][1-8][a-h][1-8][nbrq]?$/.test(uci))
 
-  if (moves.length === 0) {
+  const maxMoves = options?.maxMoves ?? Number.MAX_SAFE_INTEGER
+  const limitedMoves = maxMoves > 0 ? moves.slice(0, maxMoves) : []
+
+  if (limitedMoves.length === 0) {
     lastMoves = []
     lastMovesKey = ''
     clearOverlay()
     return
   }
 
-  const movesKey = moves.join(',')
+  const movesKey = limitedMoves.join(',')
   const hasOverlay = Boolean(document.getElementById(OVERLAY_ID))
   if (movesKey === lastMovesKey && hasOverlay) {
     return
   }
 
-  lastMoves = moves
+  lastMoves = limitedMoves
   lastMovesKey = movesKey
-  drawMoves(moves)
+  drawMoves(limitedMoves)
 }
 
 export function setupOverlayAutoRefresh(): void {

@@ -65,6 +65,17 @@ const PIECE_TO_INDEX: Record<Piece, number> = {
 }
 
 const booksIndex = booksIndexData as BooksIndex
+const AVAILABLE_BOOK_IDS = new Set(Object.keys(booksIndex))
+
+const FAMILY_RULES: Array<{ match: RegExp; target: string }> = [
+  { match: /(kings?-indian|k-i-d|kid)/, target: 'kings-indian-defense' },
+  { match: /(nimzo-indian|nimzo)/, target: 'nimzo-indian-defense' },
+  { match: /(queens?-gambit|qgd|ragozin|lasker|cambridge-springs|tartakower)/, target: 'queens-gambit' },
+  { match: /(queens?-pawn)/, target: 'queens-pawn-game' },
+  { match: /(spanish|ruy-lopez|berlin|open-games?-other|kings?-pawn-game-other|philidor|evans|bishop|italian|four-knights|three-knights|center-game|north-gambit|uncommon|unmatched)/, target: 'open-game-other' },
+  { match: /(scotch-gambit|scotch)/, target: 'scotch-game' },
+  { match: /(owen|nimzowitsch)/, target: 'owen-defense' }
+]
 
 function normalizeBookKey(input: string): string {
   return input
@@ -72,6 +83,25 @@ function normalizeBookKey(input: string): string {
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-+|-+$/g, '')
+}
+
+function findFamilyBookPath(candidates: string[]): string | null {
+  for (const rawCandidate of candidates) {
+    const candidate = normalizeBookKey(rawCandidate)
+    if (!candidate) {
+      continue
+    }
+
+    for (const rule of FAMILY_RULES) {
+      if (!rule.match.test(candidate)) {
+        continue
+      }
+      if (AVAILABLE_BOOK_IDS.has(rule.target)) {
+        return booksIndex[rule.target]
+      }
+    }
+  }
+  return null
 }
 
 function entriesCountFromBuffer(buffer: ArrayBuffer): number {
@@ -293,7 +323,17 @@ export class BookService {
     if (byId) {
       return byId
     }
-    return this.resolveBookPath(opening.name)
+    const byName = this.resolveBookPath(opening.name)
+    if (byName) {
+      return byName
+    }
+
+    const byFamily = findFamilyBookPath([opening.id, opening.name, ...(opening.tags ?? []), opening.eco ?? ''])
+    if (byFamily) {
+      return byFamily
+    }
+
+    return null
   }
 
   hasBookForOpening(opening: Opening): boolean {

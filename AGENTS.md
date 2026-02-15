@@ -221,6 +221,49 @@ This file is for me (the agent). It should be enough to understand the repo with
   - home screen includes an additional bottom data block with live position/book details,
   - functional backend/content pipeline remains active.
 
+## Completed Work (2026-02-15, optimization follow-up)
+### 1) Runtime optimization without behavior change (base profile)
+- `src/content/index.ts`:
+  - Added queued reporting with debounce + in-flight guard to avoid parallel `position:update` spam.
+  - Added forced report path only on key events (focus/visibility/setting changes).
+  - Reduced redundant UI redraws by checking last insight timestamp.
+- `src/content/detectors/chesscom.ts` and `src/content/detectors/lichess.ts`:
+  - Added throttled script scanning for FEN extraction and URL-aware cache.
+  - Kept board reconstruction as fallback only when site FEN is missing/invalid.
+- `src/core/books/service.ts`:
+  - Kept Polyglot binary search by key.
+  - Added lookup memoization (cache by Polyglot key) and precomputed books list.
+  - Reduced allocations in best-candidate selection.
+
+### 2) Performance mode in settings (standard/economy)
+- Added new mode type and insight field:
+  - `src/shared/types.ts` → `PerformanceMode = 'standard' | 'economy'`
+  - `PositionInsight.performanceMode`
+- Added background API + persistence:
+  - `src/background/index.ts`:
+    - storage key `performanceMode`
+    - messages: `performance:get`, `performance:set`, `settings:get`
+    - mode included in `position:state` payload.
+- Added settings UI block:
+  - `src/components/popup-settings.tsx`:
+    - new section `Производительность` with `Стандартный` and `Экономия`
+    - default is `Стандартный`
+    - persisted via runtime messages.
+
+### 3) Economy profile behavior (intentionally more aggressive)
+- `src/content/index.ts` applies profile-based runtime tuning:
+  - `standard`: poll `2500ms`, settings sync `6000ms`, debounce `120ms`, no mutation throttle.
+  - `economy`: poll `5200ms`, settings sync `10000ms`, debounce `280ms`, mutation throttle `850ms`.
+- `src/content/overlay.ts`:
+  - supports optional render cap; in economy mode shows up to 3 theoretical moves on board (reduces overlay/SVG load).
+
+### 4) Fix for mode persistence race
+- Root cause: MV3 service worker could process early messages before async storage load completed, temporarily falling back to `standard`.
+- Fix in `src/background/index.ts`:
+  - added gated settings initialization (`refreshSettingsFromStorage`) before handling
+    `position:get`, `hints:get`, `performance:get`, `settings:get`, `position:update`, `hints:set`, `performance:set`.
+  - ensures `economy` survives worker cold starts and applies immediately after reload.
+
 ## Agent Notes
 - Prefer `rg` for search.
 - Prefer `apply_patch` for single-file edits.

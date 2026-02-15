@@ -1,20 +1,25 @@
 import { OpeningsService } from '../core/openings'
 import { createLogger } from '../shared/logger'
-import type { PositionInsight, PositionSnapshot, TheoreticalMove } from '../shared/types'
+import type { PerformanceMode, PositionInsight, PositionSnapshot, TheoreticalMove } from '../shared/types'
 import { FavoritesRepo } from './storage'
 
 const log = createLogger('background')
 const openingsService = new OpeningsService()
 const favoritesRepo = new FavoritesRepo()
 const HINTS_ENABLED_KEY = 'hintsEnabled'
+const PERFORMANCE_MODE_KEY = 'performanceMode'
 
 let hintsEnabled = false
+let performanceMode: PerformanceMode = 'standard'
+let settingsReady = false
+let settingsLoadInFlight: Promise<void> | null = null
 
 let latestInsight: PositionInsight = {
   snapshot: null,
   theoreticalMoves: [],
   matchedBooks: 0,
   hintsEnabled,
+  performanceMode,
   bookStatus: 'position-not-detected',
   updatedAt: Date.now()
 }
@@ -27,6 +32,45 @@ async function loadHintsEnabled(): Promise<boolean> {
 async function setHintsEnabled(next: boolean): Promise<void> {
   hintsEnabled = next
   await chrome.storage.local.set({ [HINTS_ENABLED_KEY]: next })
+}
+
+async function loadPerformanceMode(): Promise<PerformanceMode> {
+  const result = await chrome.storage.local.get(PERFORMANCE_MODE_KEY)
+  return result[PERFORMANCE_MODE_KEY] === 'economy' ? 'economy' : 'standard'
+}
+
+async function setPerformanceMode(next: PerformanceMode): Promise<void> {
+  performanceMode = next
+  await chrome.storage.local.set({ [PERFORMANCE_MODE_KEY]: next })
+}
+
+async function refreshSettingsFromStorage(force = false): Promise<void> {
+  if (settingsReady && !force) {
+    return
+  }
+
+  if (!settingsLoadInFlight) {
+    settingsLoadInFlight = (async () => {
+      const [storedHintsEnabled, storedPerformanceMode] = await Promise.all([
+        loadHintsEnabled(),
+        loadPerformanceMode()
+      ])
+
+      hintsEnabled = storedHintsEnabled
+      performanceMode = storedPerformanceMode
+      latestInsight = {
+        ...latestInsight,
+        hintsEnabled,
+        performanceMode,
+        updatedAt: Date.now()
+      }
+      settingsReady = true
+    })().finally(() => {
+      settingsLoadInFlight = null
+    })
+  }
+
+  await settingsLoadInFlight
 }
 
 function bookNameFromPath(path: string): string {
@@ -69,6 +113,7 @@ async function computeInsight(snapshot: PositionSnapshot | null): Promise<Positi
       theoreticalMoves: [],
       matchedBooks: 0,
       hintsEnabled: enabled,
+      performanceMode,
       bookStatus: 'position-not-detected',
       updatedAt: Date.now()
     }
@@ -80,6 +125,7 @@ async function computeInsight(snapshot: PositionSnapshot | null): Promise<Positi
       theoreticalMoves: [],
       matchedBooks: 0,
       hintsEnabled: enabled,
+      performanceMode,
       bookStatus: 'fen-missing',
       updatedAt: Date.now()
     }
@@ -93,6 +139,7 @@ async function computeInsight(snapshot: PositionSnapshot | null): Promise<Positi
         theoreticalMoves: [],
         matchedBooks: 0,
         hintsEnabled: enabled,
+        performanceMode,
         bookStatus: 'move-not-found',
         updatedAt: Date.now()
       }
@@ -109,6 +156,7 @@ async function computeInsight(snapshot: PositionSnapshot | null): Promise<Positi
       theoreticalMoves,
       matchedBooks: hits.length,
       hintsEnabled: enabled,
+      performanceMode,
       bookStatus: theoreticalMoves.length > 0 ? 'move-found' : 'move-not-found',
       updatedAt: Date.now()
     }
@@ -118,6 +166,7 @@ async function computeInsight(snapshot: PositionSnapshot | null): Promise<Positi
       theoreticalMoves: [],
       matchedBooks: 0,
       hintsEnabled: enabled,
+      performanceMode,
       bookStatus: 'book-load-error',
       error: error instanceof Error ? error.message : 'Unknown book error',
       updatedAt: Date.now()
@@ -143,6 +192,13 @@ void loadHintsEnabled().then((value) => {
   latestInsight = { ...latestInsight, hintsEnabled: value, updatedAt: Date.now() }
 })
 
+void loadPerformanceMode().then((value) => {
+  performanceMode = value
+  latestInsight = { ...latestInsight, performanceMode: value, updatedAt: Date.now() }
+})
+
+void refreshSettingsFromStorage(true)
+
 chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
   if (message?.type === 'ping') {
     sendResponse({ ok: true })
@@ -150,27 +206,63 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
   }
 
   if (message?.type === 'position:get') {
-    sendResponse({ ok: true, payload: latestInsight })
-    return false
+    void (async () => {
+      await refreshSettingsFromStorage()
+      sendResponse({ ok: true, payload: latestInsight })
+    })()
+    return true
   }
 
   if (message?.type === 'hints:get') {
-    sendResponse({ ok: true, payload: hintsEnabled })
-    return false
+    void (async () => {
+      await refreshSettingsFromStorage()
+      sendResponse({ ok: true, payload: hintsEnabled })
+    })()
+    return true
+  }
+
+  if (message?.type === 'performance:get') {
+    void (async () => {
+      await refreshSettingsFromStorage()
+      sendResponse({ ok: true, payload: performanceMode })
+    })()
+    return true
+  }
+
+  if (message?.type === 'settings:get') {
+    void (async () => {
+      await refreshSettingsFromStorage()
+      sendResponse({ ok: true, payload: { hintsEnabled, performanceMode } })
+    })()
+    return true
   }
 
   if (message?.type === 'hints:set') {
     void (async () => {
+      await refreshSettingsFromStorage()
       await setHintsEnabled(Boolean(message.payload?.enabled))
-      const nextInsight: PositionInsight = { ...latestInsight, hintsEnabled, updatedAt: Date.now() }
+      const nextInsight: PositionInsight = { ...latestInsight, hintsEnabled, performanceMode, updatedAt: Date.now() }
       await broadcastInsight(nextInsight)
       sendResponse({ ok: true, payload: hintsEnabled })
     })()
     return true
   }
 
+  if (message?.type === 'performance:set') {
+    void (async () => {
+      await refreshSettingsFromStorage()
+      const nextMode: PerformanceMode = message.payload?.mode === 'economy' ? 'economy' : 'standard'
+      await setPerformanceMode(nextMode)
+      const nextInsight: PositionInsight = { ...latestInsight, hintsEnabled, performanceMode, updatedAt: Date.now() }
+      await broadcastInsight(nextInsight)
+      sendResponse({ ok: true, payload: performanceMode })
+    })()
+    return true
+  }
+
   if (message?.type === 'position:update') {
     void (async () => {
+      await refreshSettingsFromStorage()
       const snapshot = message.payload as PositionSnapshot
       const insight = await computeInsight(snapshot)
       await broadcastInsight(insight)

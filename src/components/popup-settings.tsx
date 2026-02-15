@@ -1,14 +1,57 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
 import { type RatingRange, ratingLabels } from "@/lib/chess-data";
 import { ChevronRight, Globe, Eye, Info } from "lucide-react";
+import type { PerformanceMode } from "@/shared/types";
 
 export function PopupSettings() {
   const [autoDetect, setAutoDetect] = useState(true);
-  const [showHints, setShowHints] = useState(true);
+  const [showHints, setShowHints] = useState(false);
+  const [performanceMode, setPerformanceMode] = useState<PerformanceMode>("standard");
   const [selectedRating, setSelectedRating] = useState<RatingRange>("1000-1300");
+
+  useEffect(() => {
+    const runtime = globalThis.chrome?.runtime;
+    if (!runtime?.sendMessage) {
+      return;
+    }
+
+    runtime.sendMessage({ type: "hints:get" }, (response) => {
+      if (response?.ok) {
+        setShowHints(Boolean(response.payload));
+      }
+    });
+
+    runtime.sendMessage({ type: "performance:get" }, (response) => {
+      if (response?.ok && (response.payload === "standard" || response.payload === "economy")) {
+        setPerformanceMode(response.payload);
+      }
+    });
+  }, []);
+
+  const toggleHints = () => {
+    const next = !showHints;
+    setShowHints(next);
+    const runtime = globalThis.chrome?.runtime;
+    if (!runtime?.sendMessage) {
+      return;
+    }
+    runtime.sendMessage({ type: "hints:set", payload: { enabled: next } });
+  };
+
+  const changePerformanceMode = (next: PerformanceMode) => {
+    if (next === performanceMode) {
+      return;
+    }
+    setPerformanceMode(next);
+    const runtime = globalThis.chrome?.runtime;
+    if (!runtime?.sendMessage) {
+      return;
+    }
+    runtime.sendMessage({ type: "performance:set", payload: { mode: next } });
+  };
 
   return (
     <div className="flex flex-col h-full overflow-y-auto">
@@ -65,8 +108,50 @@ export function PopupSettings() {
             label="Подсказки ходов"
             description="Показывать рекомендации во время игры"
             checked={showHints}
-            onToggle={() => setShowHints(!showHints)}
+            onToggle={toggleHints}
           />
+        </div>
+
+        <div className="rounded-xl bg-card border border-border/50 overflow-hidden">
+          <div className="px-3 py-2.5 border-b border-border/50">
+            <span className="text-xs font-medium text-foreground">Производительность</span>
+            <p className="text-[10px] text-muted-foreground mt-0.5">
+              Стандартный режим показывает все ходы, Экономия снижает нагрузку
+            </p>
+          </div>
+          <div className="p-2 flex gap-1.5">
+            <button
+              type="button"
+              onClick={() => changePerformanceMode("standard")}
+              className={cn(
+                "px-2.5 py-1.5 rounded-lg text-[10px] font-medium border transition-all",
+                performanceMode === "standard"
+                  ? "bg-primary/15 text-primary border-primary/30"
+                  : "bg-secondary/50 text-muted-foreground border-transparent hover:text-foreground hover:bg-secondary"
+              )}
+            >
+              Стандартный
+            </button>
+            <button
+              type="button"
+              onClick={() => changePerformanceMode("economy")}
+              className={cn(
+                "px-2.5 py-1.5 rounded-lg text-[10px] font-medium border transition-all",
+                performanceMode === "economy"
+                  ? "bg-primary/15 text-primary border-primary/30"
+                  : "bg-secondary/50 text-muted-foreground border-transparent hover:text-foreground hover:bg-secondary"
+              )}
+            >
+              Экономия
+            </button>
+          </div>
+          <div className="px-3 py-2 border-t border-border/30">
+            <span className="text-[10px] text-primary font-medium">
+              {performanceMode === "standard"
+                ? "Стандарт: полная частота обновления и все теоретические ходы"
+                : "Экономия: реже обновляет позицию и показывает до 3 ходов"}
+            </span>
+          </div>
         </div>
 
         {/* About */}

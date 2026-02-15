@@ -42,6 +42,7 @@ export function HomeScreen() {
     theoreticalMoves: [],
     matchedBooks: 0,
     hintsEnabled: false,
+    performanceMode: "standard",
     bookStatus: "position-not-detected",
     updatedAt: Date.now(),
   });
