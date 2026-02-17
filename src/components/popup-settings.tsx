@@ -11,6 +11,7 @@ export function PopupSettings() {
   const [selectedRating, setSelectedRating] = useState<RatingRange>("1000-1300");
   const [limitsDisabled, setLimitsDisabled] = useState(false);
   const [showLimitsWarning, setShowLimitsWarning] = useState(false);
+  const [showAboutModal, setShowAboutModal] = useState(false);
 
   useEffect(() => {
     const runtime = globalThis.chrome?.runtime;
@@ -19,6 +20,9 @@ export function PopupSettings() {
     }
 
     runtime.sendMessage({ type: "settings:get" }, (response) => {
+      if (globalThis.chrome?.runtime?.lastError) {
+        return;
+      }
       if (!response?.ok || !response.payload) {
         return;
       }
@@ -67,7 +71,11 @@ export function PopupSettings() {
     if (!runtime?.sendMessage) {
       return;
     }
-    runtime.sendMessage({ type: "performance:set", payload: { mode: next } });
+    try {
+      runtime.sendMessage({ type: "performance:set", payload: { mode: next } });
+    } catch {
+      // popup closed or extension reloaded
+    }
   };
 
   const changeRatingRange = (next: RatingRange) => {
@@ -76,7 +84,11 @@ export function PopupSettings() {
     if (!runtime?.sendMessage) {
       return;
     }
-    runtime.sendMessage({ type: "rating:set", payload: { ratingRange: next } });
+    try {
+      runtime.sendMessage({ type: "rating:set", payload: { ratingRange: next } });
+    } catch {
+      // popup closed or extension reloaded
+    }
   };
 
   const requestToggleLimits = (nextDisabled: boolean) => {
@@ -90,7 +102,11 @@ export function PopupSettings() {
     if (!runtime?.sendMessage) {
       return;
     }
-    runtime.sendMessage({ type: "limits:set", payload: { disabled: false } });
+    try {
+      runtime.sendMessage({ type: "limits:set", payload: { disabled: false } });
+    } catch {
+      // popup closed or extension reloaded
+    }
   };
 
   const confirmDisableLimits = () => {
@@ -100,7 +116,11 @@ export function PopupSettings() {
     if (!runtime?.sendMessage) {
       return;
     }
-    runtime.sendMessage({ type: "limits:set", payload: { disabled: true } });
+    try {
+      runtime.sendMessage({ type: "limits:set", payload: { disabled: true } });
+    } catch {
+      // popup closed or extension reloaded
+    }
   };
 
   return (
@@ -217,18 +237,22 @@ export function PopupSettings() {
         </div>
 
         {/* About */}
-        <div className="rounded-xl bg-card border border-border/50">
+        <button
+          type="button"
+          onClick={() => setShowAboutModal(true)}
+          className="rounded-xl bg-card border border-border/50 text-left hover:border-primary/30 transition-colors"
+        >
           <div className="flex items-center gap-3 px-3 py-3">
             <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
               <Info className="w-4 h-4 text-primary" />
             </div>
             <div className="flex-1">
-              <span className="text-xs font-medium text-foreground">lineMaster</span>
-              <p className="text-[10px] text-muted-foreground">v0.12.0 beta</p>
+              <span className="text-xs font-medium text-foreground">Line Master</span>
+              <p className="text-[10px] text-muted-foreground">v1.0.0</p>
             </div>
             <ChevronRight className="w-4 h-4 text-muted-foreground/40" />
           </div>
-        </div>
+        </button>
       </div>
 
       {showLimitsWarning && (
@@ -253,6 +277,46 @@ export function PopupSettings() {
                 className="px-2.5 py-1.5 rounded-lg text-[10px] font-medium border border-border/60 text-muted-foreground bg-secondary/40"
               >
                 Отмена
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showAboutModal && (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-background/70 backdrop-blur-[2px] px-4">
+          <div className="w-full max-h-[78vh] overflow-y-auto rounded-xl border border-border/70 bg-card p-4 shadow-2xl">
+            <p className="text-sm font-semibold text-foreground mb-1">Line Master</p>
+            <p className="text-[11px] text-muted-foreground mb-3">Версия 1.0.0</p>
+
+            <div className="space-y-3 text-xs text-muted-foreground leading-relaxed">
+              <div>
+                <p className="text-foreground font-medium mb-1">Что это за программа</p>
+                <p>
+                  Line Master — расширение для показа теоретических дебютных ходов из локальных Polyglot-книг по
+                  текущей позиции на доске.
+                </p>
+              </div>
+
+              <div className="rounded-lg border border-destructive/50 bg-destructive/10 p-3">
+                <p className="text-destructive font-medium mb-1">Отказ от ответственности</p>
+                <p className="text-destructive/90">
+                  Вы используете расширение на свой риск. Автор не несёт ответственность за ограничения, блокировку
+                  или бан вашего аккаунта.
+                </p>
+                <p className="text-destructive/90 mt-2">
+                  Неаккуратное и чрезмерное использование подсказок может повышать риск санкций со стороны платформ.
+                </p>
+              </div>
+            </div>
+
+            <div className="flex justify-end mt-4">
+              <button
+                type="button"
+                onClick={() => setShowAboutModal(false)}
+                className="px-3 py-1.5 rounded-lg text-xs font-medium bg-secondary text-foreground hover:bg-secondary/80 transition-colors"
+              >
+                Закрыть
               </button>
             </div>
           </div>

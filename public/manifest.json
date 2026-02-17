@@ -1,10 +1,10 @@
 {
   "manifest_version": 3,
-  "name": "Theory Bot",
-  "version": "0.0.1",
+  "name": "Line Master",
+  "version": "1.0.0",
   "description": "Chess opening theory helper.",
   "action": {
-    "default_title": "Theory Bot",
+    "default_title": "Line Master",
     "default_popup": "popup.html",
     "default_icon": {
       "16": "images/icon.png",

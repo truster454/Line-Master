@@ -68,13 +68,18 @@ function sendRuntimeMessage<T>(message: unknown): Promise<T | null> {
   }
 
   return new Promise((resolve) => {
-    runtime.sendMessage(message, (response) => {
-      if (globalThis.chrome?.runtime?.lastError) {
-        resolve(null)
-        return
-      }
-      resolve((response ?? null) as T | null)
-    })
+    try {
+      runtime.sendMessage(message, (response) => {
+        if (globalThis.chrome?.runtime?.lastError) {
+          resolve(null)
+          return
+        }
+        resolve((response ?? null) as T | null)
+      })
+    } catch {
+      // Happens when extension is reloaded and this content script context is invalidated.
+      resolve(null)
+    }
   })
 }
 

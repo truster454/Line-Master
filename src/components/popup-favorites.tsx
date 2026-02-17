@@ -125,6 +125,9 @@ export function PopupFavorites() {
 
     if (runtime?.sendMessage) {
       runtime.sendMessage({ type: "favorites:list" }, (response) => {
+        if (globalThis.chrome?.runtime?.lastError) {
+          return;
+        }
         if (!response?.ok || !Array.isArray(response.payload)) {
           return;
         }
@@ -132,6 +135,9 @@ export function PopupFavorites() {
       });
 
       runtime.sendMessage({ type: "settings:get" }, (response) => {
+        if (globalThis.chrome?.runtime?.lastError) {
+          return;
+        }
         if (!response?.ok || !response.payload) {
           return;
         }
@@ -235,7 +241,11 @@ export function PopupFavorites() {
     if (!runtime?.sendMessage) {
       return;
     }
-    runtime.sendMessage({ type: "favorites:remove", payload: { id } });
+    try {
+      runtime.sendMessage({ type: "favorites:remove", payload: { id } });
+    } catch {
+      // popup closed or extension reloaded
+    }
   };
 
   if (visibleFavorites.length === 0) {

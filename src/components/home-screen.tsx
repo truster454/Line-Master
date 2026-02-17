@@ -94,7 +94,11 @@ export function HomeScreen() {
     setIsActive(next);
 
     if (!runtime?.sendMessage) return;
-    runtime.sendMessage({ type: "hints:set", payload: { enabled: next } });
+    try {
+      runtime.sendMessage({ type: "hints:set", payload: { enabled: next } });
+    } catch {
+      // popup closed or extension reloaded
+    }
   };
 
   // Floating ambient particles behind the button
@@ -119,12 +123,18 @@ export function HomeScreen() {
     if (!runtime?.sendMessage) return;
 
     runtime.sendMessage({ type: "hints:get" }, (response) => {
+      if (globalThis.chrome?.runtime?.lastError) {
+        return;
+      }
       if (response?.ok) {
         setIsActive(Boolean(response.payload));
       }
     });
 
     runtime.sendMessage({ type: "position:get" }, (response) => {
+      if (globalThis.chrome?.runtime?.lastError) {
+        return;
+      }
       if (response?.ok && response.payload) {
         const payload = response.payload as PositionInsight;
         setInsight(payload);
@@ -134,6 +144,9 @@ export function HomeScreen() {
     });
 
     runtime.sendMessage({ type: "settings:get" }, (response) => {
+      if (globalThis.chrome?.runtime?.lastError) {
+        return;
+      }
       if (!response?.ok || !response.payload?.ratingRange) {
         return;
       }
