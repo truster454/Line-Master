@@ -85,6 +85,15 @@ function extractMovesFromDom(): string[] {
   return normalizeMoveList(rawMoves)
 }
 
+function detectPlayerColor(): 'w' | 'b' | undefined {
+  const board = document.querySelector<HTMLElement>('cg-board')
+  if (!board) {
+    return undefined
+  }
+  const isBlack = Boolean(board.closest('.orientation-black'))
+  return isBlack ? 'b' : 'w'
+}
+
 export async function detectLichess(): Promise<PositionSnapshot | null> {
   const moves = extractMovesFromDom()
   const domFen = extractFenFromDom()
@@ -99,6 +108,7 @@ export async function detectLichess(): Promise<PositionSnapshot | null> {
     source: 'lichess',
     fen,
     moves,
+    playerColor: detectPlayerColor(),
     url: window.location.href
   }
 }

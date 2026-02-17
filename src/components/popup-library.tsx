@@ -27,6 +27,7 @@ interface LibraryOpening {
   preset: LibraryTab;
   nameRu: string;
   nameEn: string;
+  openingColor: "white" | "black" | "unknown";
   category: CategoryKey;
   ratingRange: string;
   difficultyKey: string;
@@ -138,24 +139,40 @@ function parseClassificationLine(line: string): {
   ratingRange: string;
   categoryRaw: string;
   difficultyRaw: string;
+  colorRaw?: string;
 } | null {
   const trimmed = line.trim();
   if (!trimmed || trimmed.startsWith("#")) {
     return null;
   }
 
-  const match = trimmed.match(/^(\S+)\s{2,}(.+?)\s{2,}(.+?)\s{2,}(.+?)\s{2,}(.+)$/);
-  if (!match) {
+  const cols = trimmed.split(/\s{2,}/).map((part) => part.trim()).filter(Boolean);
+  if (cols.length < 5) {
     return null;
   }
 
   return {
-    bookFile: match[1].trim(),
-    nameRu: match[2].trim(),
-    ratingRange: normalizeRating(match[3].trim()),
-    categoryRaw: normalizeCategory(match[4]),
-    difficultyRaw: match[5].trim(),
+    bookFile: cols[0],
+    nameRu: cols[1],
+    ratingRange: normalizeRating(cols[2]),
+    categoryRaw: normalizeCategory(cols[3]),
+    difficultyRaw: cols[4],
+    colorRaw: cols[5],
   };
+}
+
+function normalizeOpeningColor(input?: string): "white" | "black" | "unknown" {
+  const normalized = (input ?? "").trim().toLowerCase();
+  if (!normalized) {
+    return "unknown";
+  }
+  if (normalized === "white" || normalized === "w" || normalized.includes("бел")) {
+    return "white";
+  }
+  if (normalized === "black" || normalized === "b" || normalized.includes("чер") || normalized.includes("чёр")) {
+    return "black";
+  }
+  return "unknown";
 }
 
 function buildLibraryOpenings(booksIndexInput: Record<string, string>, preset: LibraryTab): LibraryOpening[] {
@@ -196,6 +213,7 @@ function buildLibraryOpenings(booksIndexInput: Record<string, string>, preset: L
       preset,
       nameRu: parsed.nameRu,
       nameEn: opening?.name ?? fileStem(parsed.bookFile).replace(/_/g, " "),
+      openingColor: normalizeOpeningColor(parsed.colorRaw),
       category,
       ratingRange,
       difficultyKey: difficulty,
@@ -339,7 +357,25 @@ export function PopupLibrary() {
               <span className={cn("text-sm font-semibold", DIFFICULTY_COLORS[selectedOpening.difficultyKey])}>
                 {DIFFICULTY_LABELS[selectedOpening.difficultyKey]}
               </span>
-              <span className="text-sm font-mono text-muted-foreground">{selectedOpening.ratingRange}</span>
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-mono text-muted-foreground">{selectedOpening.ratingRange}</span>
+                <span
+                  className={cn(
+                    "text-[10px] font-medium px-1.5 py-0.5 rounded",
+                    selectedOpening.openingColor === "white"
+                      ? "text-sky-300 bg-sky-500/15 border border-sky-500/30"
+                      : selectedOpening.openingColor === "black"
+                        ? "text-amber-300 bg-amber-500/15 border border-amber-500/30"
+                        : "text-muted-foreground bg-secondary/40 border border-border/40"
+                  )}
+                >
+                  {selectedOpening.openingColor === "white"
+                    ? "Белые"
+                    : selectedOpening.openingColor === "black"
+                      ? "Чёрные"
+                      : "Цвет не указан"}
+                </span>
+              </div>
             </div>
             <h2 className="text-xl font-bold text-foreground leading-tight">{selectedOpening.nameRu}</h2>
             <p className="text-xs text-muted-foreground mt-1">{selectedOpening.nameEn}</p>
@@ -493,7 +529,25 @@ export function PopupLibrary() {
                       >
                         {DIFFICULTY_LABELS[opening.difficultyKey]}
                       </span>
-                      <span className="text-sm font-mono text-muted-foreground">{opening.ratingRange}</span>
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-mono text-muted-foreground">{opening.ratingRange}</span>
+                        <span
+                          className={cn(
+                            "text-[9px] font-medium px-1.5 py-0.5 rounded",
+                            opening.openingColor === "white"
+                              ? "text-sky-300 bg-sky-500/15 border border-sky-500/30"
+                              : opening.openingColor === "black"
+                                ? "text-amber-300 bg-amber-500/15 border border-amber-500/30"
+                                : "text-muted-foreground bg-secondary/40 border border-border/40"
+                          )}
+                        >
+                          {opening.openingColor === "white"
+                            ? "Бел"
+                            : opening.openingColor === "black"
+                              ? "Чёр"
+                              : "?"}
+                        </span>
+                      </div>
                     </div>
 
                     <p className="text-sm font-semibold text-foreground truncate">{opening.nameRu}</p>

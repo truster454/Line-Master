@@ -91,6 +91,27 @@ function extractMovesFromDom(): string[] {
   return normalizeMoveList(rawMoves)
 }
 
+function detectPlayerColor(): 'w' | 'b' | undefined {
+  const board =
+    document.querySelector<HTMLElement>('wc-chess-board') ??
+    document.querySelector<HTMLElement>('chess-board') ??
+    document.querySelector<HTMLElement>('[data-cy="board-layout-board"] .board') ??
+    document.querySelector<HTMLElement>('.board')
+
+  if (!board) {
+    return undefined
+  }
+
+  const flipped = Boolean(
+    board.classList.contains('flipped') ||
+      board.closest('.flipped') ||
+      document.querySelector('.board.flipped') ||
+      document.querySelector('chess-board.flipped')
+  )
+
+  return flipped ? 'b' : 'w'
+}
+
 export async function detectChessCom(): Promise<PositionSnapshot | null> {
   const moves = extractMovesFromDom()
   const domFen = extractFenFromDom()
@@ -105,6 +126,7 @@ export async function detectChessCom(): Promise<PositionSnapshot | null> {
     source: 'chess.com',
     fen,
     moves,
+    playerColor: detectPlayerColor(),
     url: window.location.href
   }
 }

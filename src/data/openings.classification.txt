@@ -1,39 +1,39 @@
-Grunfeld_Defense.bin  Защита Грюнфельда  2000+  Hypermodern openings  Theoretical
-English_Opening.bin  Английское начало  1600–2000  Flank openings  Conceptual
-Vienna_Game.bin  Венская партия  700–1000  Classical_openings  Tactical
-Bird_Opening.bin  Дебют Бёрда  1000–1300  Flank openings  System-based
-Dutch_Defense.bin  Голландская защита  1300–1600  Hypermodern openings  Tactical
-Tarrasch_Defense.bin  Защита Тарраша  1300–1600  Classical_openings  Theoretical
-Owen_Defense.bin  Защита Оуэна  1000–1300  Hypermodern openings  System-based
-Nimzo_Indian_Defense.bin  Нимцо-индийская защита  2000+  Hypermodern openings  Theoretical
-Alekhine_Defense.bin  Защита Алехина  2000+  Hypermodern openings  Theoretical
-Two_Knights_Defense.bin  Защита двух коней  1000–1300  Classical openings  Tactical
-Semi_Slav_Defense.bin  Полуславянская защита  2000+  Classical openings  Theoretical
-Queens_Gambit_Accepted.bin  Принятый ферзевый гамбит  1300–1600  Gambits  Theoretical
-Zukertort_Opening.bin  Дебют Цукерторта  1300–1600  System openings  System-based
-Colle_System.bin  Система Колле  700–1000  System openings  System-based
-Scandinavian_Defense.bin  Скандинавская защита  700–1000  Classical openings  Basic
-Petrov_Defense.bin  Русская защита (Петрова)  1300–1600  Classical openings  Conceptual
-Blumenfeld_Gambit.bin  Гамбит Блюменфельда  2000+  Gambits  Theoretical
-Queens_Pawn_Game.bin  Дебют ферзевой пешки  0–700  System openings  Basic
-Reti_Opening.bin  Дебют Рети  1600–2000  Flank openings  Conceptual
-Albin_Countergambit.bin  Контргамбит Альбина  1000–1300  Countergambits  Tactical
-Catalan_Opening.bin  Каталонское начало  1600–2000  Classical openings  Conceptual
-Semi_Tarrasch_Defense.bin  Полузащита Тарраша (Семи-Тарраш)  1600–2000  Classical openings  Conceptual
-Budapest_Gambit.bin  Будапештский гамбит  1000–1300  Gambits  Tactical
-Open_Game_Other.bin  Открытая игра (прочее)  700–1000  Classical openings  Basic
-Benko_Gambit.bin  Гамбит Бенко  2000+  Gambits  Theoretical
-Caro_Kann_Defense.bin  Защита Каро–Канн  1300–1600  Classical openings  System-based
-Kings_Indian_Defense.bin  Староиндийская защита  1600–2000  Hypermodern openings  Conceptual
-Queens_Gambit.bin  Ферзевый гамбит  1600–2000  Gambits  System-based
-Queens_Indian_Defense.bin  Ферзево-индийская защита  1600–2000  Hypermodern openings  Conceptual
-Slav_Defense.bin  Славянская защита  1300–1600  Classical openings  System-based
-Scotch_Game.bin  Шотландская партия  700–1000  Classical openings  Tactical
-Uncommon_Openings.bin  Необычные дебюты  1000–1300  Trap openings  Tactical
-Benoni_Defense.bin  Защита Бенони  1600–2000  Hypermodern openings  Conceptual
-Pirc_Defense.bin  Защита Пирца  1600–2000  Hypermodern openings  Conceptual
-Sicilian_Defense.bin  Сицилианская защита  2000+  Classical openings  Theoretical
-French_Defense.bin  Французская защита  1600–2000  Classical openings  Theoretical
-Kings_Gambit.bin  Королевский гамбит  1600–2000  Gambits  Tactical
-Philidor_Defense.bin  Защита Филидора  1300–1600  Classical openings  System-based
-Italian_Game.bin  Итальянская партия  700–1000  Classical openings  System-based
+Grunfeld_Defense.bin  Защита Грюнфельда  2000+  Hypermodern openings  Theoretical  black
+English_Opening.bin  Английское начало  1600–2000  Flank openings  Conceptual  white
+Vienna_Game.bin  Венская партия  700–1000  Classical_openings  Tactical  white
+Bird_Opening.bin  Дебют Бёрда  1000–1300  Flank openings  System-based  white
+Dutch_Defense.bin  Голландская защита  1300–1600  Hypermodern openings  Tactical  black
+Tarrasch_Defense.bin  Защита Тарраша  1300–1600  Classical_openings  Theoretical  black
+Owen_Defense.bin  Защита Оуэна  1000–1300  Hypermodern openings  System-based  black
+Nimzo_Indian_Defense.bin  Нимцо-индийская защита  2000+  Hypermodern openings  Theoretical  black
+Alekhine_Defense.bin  Защита Алехина  2000+  Hypermodern openings  Theoretical  black
+Two_Knights_Defense.bin  Защита двух коней  1000–1300  Classical openings  Tactical  black
+Semi_Slav_Defense.bin  Полуславянская защита  2000+  Classical openings  Theoretical  black
+Queens_Gambit_Accepted.bin  Принятый ферзевый гамбит  1300–1600  Gambits  Theoretical  black
+Zukertort_Opening.bin  Дебют Цукерторта  1300–1600  System openings  System-based  white
+Colle_System.bin  Система Колле  700–1000  System openings  System-based  white
+Scandinavian_Defense.bin  Скандинавская защита  700–1000  Classical openings  Basic  black
+Petrov_Defense.bin  Русская защита (Петрова)  1300–1600  Classical openings  Conceptual  black
+Blumenfeld_Gambit.bin  Гамбит Блюменфельда  2000+  Gambits  Theoretical  black
+Queens_Pawn_Game.bin  Дебют ферзевой пешки  0–700  System openings  Basic  white
+Reti_Opening.bin  Дебют Рети  1600–2000  Flank openings  Conceptual  white
+Albin_Countergambit.bin  Контргамбит Альбина  1000–1300  Countergambits  Tactical  black
+Catalan_Opening.bin  Каталонское начало  1600–2000  Classical openings  Conceptual  white
+Semi_Tarrasch_Defense.bin  Полузащита Тарраша (Семи-Тарраш)  1600–2000  Classical openings  Conceptual  black
+Budapest_Gambit.bin  Будапештский гамбит  1000–1300  Gambits  Tactical  black
+Open_Game_Other.bin  Открытая игра (прочее)  700–1000  Classical openings  Basic  white
+Benko_Gambit.bin  Гамбит Бенко  2000+  Gambits  Theoretical  black
+Caro_Kann_Defense.bin  Защита Каро–Канн  1300–1600  Classical openings  System-based  black
+Kings_Indian_Defense.bin  Староиндийская защита  1600–2000  Hypermodern openings  Conceptual  black
+Queens_Gambit.bin  Ферзевый гамбит  1600–2000  Gambits  System-based  white
+Queens_Indian_Defense.bin  Ферзево-индийская защита  1600–2000  Hypermodern openings  Conceptual  black
+Slav_Defense.bin  Славянская защита  1300–1600  Classical openings  System-based  black
+Scotch_Game.bin  Шотландская партия  700–1000  Classical openings  Tactical  white
+Uncommon_Openings.bin  Необычные дебюты  1000–1300  Trap openings  Tactical  white
+Benoni_Defense.bin  Защита Бенони  1600–2000  Hypermodern openings  Conceptual  black
+Pirc_Defense.bin  Защита Пирца  1600–2000  Hypermodern openings  Conceptual  black
+Sicilian_Defense.bin  Сицилианская защита  2000+  Classical openings  Theoretical  black
+French_Defense.bin  Французская защита  1600–2000  Classical openings  Theoretical  black
+Kings_Gambit.bin  Королевский гамбит  1600–2000  Gambits  Tactical  white
+Philidor_Defense.bin  Защита Филидора  1300–1600  Classical openings  System-based  black
+Italian_Game.bin  Итальянская партия  700–1000  Classical openings  System-based  white

@@ -9,11 +9,21 @@ import { Heart, Star } from "lucide-react";
 import type { Opening } from "@/core/openings/schema";
 import type { RatingRange } from "@/shared/types";
 
-const CLASSIFICATION_LINE_RE = /^(\S+)\s{2,}(.+?)\s{2,}(.+?)\s{2,}(.+?)\s{2,}(.+)$/;
 const RATING_ORDER: RatingRange[] = ["0-700", "700-1000", "1000-1300", "1300-1600", "1600-2000", "2000+"];
 
 function normalizeRating(raw: string): string {
   return raw.replace(/-/g, "–").replace(/\s+/g, "");
+}
+
+function normalizeOpeningColor(input?: string): "white" | "black" | "unknown" {
+  const normalized = (input ?? "").trim().toLowerCase();
+  if (["white", "w", "белые", "белые."].includes(normalized)) {
+    return "white";
+  }
+  if (["black", "b", "черные", "чёрные", "черные.", "чёрные."].includes(normalized)) {
+    return "black";
+  }
+  return "unknown";
 }
 
 function classificationValueToRatingBand(value: string): RatingRange | null {
@@ -34,26 +44,33 @@ function isAllowedBySelectedRating(openingRating: string, selectedRating: Rating
   return openingRank <= selectedRank;
 }
 
-function buildMetaByOpeningId(): { ruByOpeningId: Map<string, string>; ratingByOpeningId: Map<string, string> } {
+function buildMetaByOpeningId(): {
+  ruByOpeningId: Map<string, string>;
+  ratingByOpeningId: Map<string, string>;
+  colorByOpeningId: Map<string, "white" | "black" | "unknown">;
+} {
   const booksIndex = booksIndexJson as Record<string, string>;
   const ruByBookFile = new Map<string, string>();
   const ratingByBookFile = new Map<string, string>();
+  const colorByBookFile = new Map<string, "white" | "black" | "unknown">();
 
   for (const rawLine of classificationRaw.split(/\r?\n/)) {
     const line = rawLine.trim();
     if (!line || line.startsWith("#")) {
       continue;
     }
-    const match = line.match(CLASSIFICATION_LINE_RE);
+    const match = line.match(/^(\S+)\s{2,}(.+?)\s{2,}(.+?)\s{2,}(.+?)\s{2,}(.+?)(?:\s{2,}(.+))?$/);
     if (!match) {
       continue;
     }
     ruByBookFile.set(match[1], match[2]);
     ratingByBookFile.set(match[1], normalizeRating(match[3]));
+    colorByBookFile.set(match[1], normalizeOpeningColor(match[6]));
   }
 
   const ruByOpeningId = new Map<string, string>();
   const ratingByOpeningId = new Map<string, string>();
+  const colorByOpeningId = new Map<string, "white" | "black" | "unknown">();
   for (const [openingId, path] of Object.entries(booksIndex)) {
     const bookFile = path.split("/").pop() ?? "";
     const ruName = ruByBookFile.get(bookFile);
@@ -64,14 +81,22 @@ function buildMetaByOpeningId(): { ruByOpeningId: Map<string, string>; ratingByO
     if (rating) {
       ratingByOpeningId.set(openingId, rating);
     }
+    const color = colorByBookFile.get(bookFile);
+    if (color) {
+      colorByOpeningId.set(openingId, color);
+    }
   }
 
-  return { ruByOpeningId, ratingByOpeningId };
+  return { ruByOpeningId, ratingByOpeningId, colorByOpeningId };
 }
 
 const OPENINGS = openingsJson as Opening[];
 const OPENING_BY_ID = new Map(OPENINGS.map((opening) => [opening.id, opening]));
-const { ruByOpeningId: RU_NAME_BY_OPENING_ID, ratingByOpeningId: RATING_BY_OPENING_ID } = buildMetaByOpeningId();
+const {
+  ruByOpeningId: RU_NAME_BY_OPENING_ID,
+  ratingByOpeningId: RATING_BY_OPENING_ID,
+  colorByOpeningId: COLOR_BY_OPENING_ID,
+} = buildMetaByOpeningId();
 const FAVORITES_STORAGE_KEY = "favorites";
 
 async function loadFavoritesFromStorage(): Promise<string[]> {
@@ -177,6 +202,7 @@ export function PopupFavorites() {
         eco: opening?.eco ?? "—",
         name: ruName ?? opening?.name ?? id,
         ratingRange: openingRating ?? "—",
+        openingColor: COLOR_BY_OPENING_ID.get(id) ?? "unknown",
         isOutOfRating,
         movesPreview: opening?.moves?.slice(0, 8).join(" ") ?? "Линия не хранится в metadata",
       };
@@ -189,6 +215,19 @@ export function PopupFavorites() {
     }
     return favorites.filter((item) => !item.isOutOfRating);
   }, [favorites, showOutOfRating]);
+
+  const whiteFavorites = useMemo(
+    () => visibleFavorites.filter((item) => item.openingColor === "white"),
+    [visibleFavorites]
+  );
+  const blackFavorites = useMemo(
+    () => visibleFavorites.filter((item) => item.openingColor === "black"),
+    [visibleFavorites]
+  );
+  const unknownFavorites = useMemo(
+    () => visibleFavorites.filter((item) => item.openingColor === "unknown"),
+    [visibleFavorites]
+  );
 
   const handleRemoveFavorite = (id: string) => {
     setFavoriteIds((prev) => prev.filter((item) => item !== id));
@@ -240,28 +279,63 @@ export function PopupFavorites() {
         </div>
       </div>
       <div className="flex-1 px-4 pb-4 overflow-y-auto">
+        <div className="flex flex-col gap-3">
+          <FavoritesGroup title="Белые" items={whiteFavorites} onRemove={handleRemoveFavorite} />
+          <FavoritesGroup title="Чёрные" items={blackFavorites} onRemove={handleRemoveFavorite} />
+          {unknownFavorites.length > 0 && (
+            <FavoritesGroup title="Без цвета" items={unknownFavorites} onRemove={handleRemoveFavorite} />
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function FavoritesGroup({
+  title,
+  items,
+  onRemove,
+}: {
+  title: string;
+  items: Array<{
+    id: string;
+    eco: string;
+    name: string;
+    movesPreview: string;
+    isOutOfRating: boolean;
+  }>;
+  onRemove: (id: string) => void;
+}) {
+  return (
+    <div>
+      <h4 className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium mb-2">
+        {title} ({items.length})
+      </h4>
+      {items.length === 0 ? (
+        <div className="p-3 rounded-xl bg-card border border-border/40">
+          <span className="text-[10px] text-muted-foreground">Пусто</span>
+        </div>
+      ) : (
         <div className="flex flex-col gap-1.5">
-          {visibleFavorites.map((opening) => (
+          {items.map((opening) => (
             <div
               key={opening.id}
               className={cn(
                 "flex items-center gap-3 p-3 rounded-xl bg-card border group",
-                opening.isOutOfRating ? "border-destructive/60" : "border-border/50"
+                opening.isOutOfRating ? "border-destructive/60 bg-destructive/10" : "border-border/50"
               )}
             >
               <div className="flex flex-col flex-1 min-w-0">
                 <div className="flex items-center gap-2 mb-0.5">
                   <span className="text-[9px] font-mono text-primary bg-primary/10 px-1 py-0.5 rounded">{opening.eco}</span>
-                  {opening.isOutOfRating && (
-                    <span className="text-[9px] font-medium text-destructive">не по рейтингу</span>
-                  )}
+                  {opening.isOutOfRating && <span className="text-[9px] font-medium text-destructive">не по рейтингу</span>}
                 </div>
                 <span className="text-sm font-medium text-foreground truncate">{opening.name}</span>
                 <span className="text-[10px] text-muted-foreground font-mono mt-0.5 truncate">{opening.movesPreview}</span>
               </div>
               <button
                 type="button"
-                onClick={() => handleRemoveFavorite(opening.id)}
+                onClick={() => onRemove(opening.id)}
                 className="p-1.5 rounded-lg hover:bg-secondary transition-colors"
                 aria-label="Remove from favorites"
               >
@@ -270,7 +344,7 @@ export function PopupFavorites() {
             </div>
           ))}
         </div>
-      </div>
+      )}
     </div>
   );
 }

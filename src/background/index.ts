@@ -41,7 +41,7 @@ let favoritesReady = false
 let favoritesLoadInFlight: Promise<void> | null = null
 let favoriteIds = new Set<string>()
 
-const CLASSIFICATION_LINE_RE = /^(\S+)\s{2,}(.+?)\s{2,}(.+?)\s{2,}(.+?)\s{2,}(.+)$/
+const CLASSIFICATION_LINE_RE = /^(\S+)\s{2,}(.+?)\s{2,}(.+?)\s{2,}(.+?)\s{2,}(.+?)(?:\s{2,}(.+))?$/
 const RUS_NAME_BY_BOOK_FILE = new Map<string, string>()
 const RATING_BY_BOOK_FILE = new Map<string, RatingRange>()
 const RATING_BY_OPENING_ID = new Map<string, RatingRange>()
@@ -297,6 +297,12 @@ function getPlayedFullMoves(plies: number): number {
   return Math.ceil(Math.max(0, plies) / 2)
 }
 
+function extractFenTurn(fen: string): 'w' | 'b' | null {
+  const parts = fen.trim().split(/\s+/)
+  const turn = parts[1]
+  return turn === 'w' || turn === 'b' ? turn : null
+}
+
 async function computeInsight(snapshot: PositionSnapshot | null): Promise<PositionInsight> {
   await refreshFavoritesFromStorage()
   const enabled = hintsEnabled
@@ -325,6 +331,19 @@ async function computeInsight(snapshot: PositionSnapshot | null): Promise<Positi
   }
 
   try {
+    const activeTurn = extractFenTurn(snapshot.fen)
+    if (snapshot.playerColor && activeTurn && snapshot.playerColor !== activeTurn) {
+      return {
+        snapshot,
+        theoreticalMoves: [],
+        matchedBooks: 0,
+        hintsEnabled: enabled,
+        performanceMode,
+        bookStatus: 'not-player-turn',
+        updatedAt: Date.now()
+      }
+    }
+
     const fullMovesPlayed = getPlayedFullMoves(snapshot.moves.length)
     const maxDepth = DEPTH_LIMIT_BY_RATING[ratingRange]
 
