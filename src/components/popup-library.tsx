@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { cn } from "@/lib/utils";
 import openingsJson from "@/data/openings.json";
 import booksIndexJson from "@/data/books.index.json";
+import booksSecondIndexJson from "@/data/books.second.index.json";
 import classificationRaw from "@/data/openings.classification.txt?raw";
 import { ArrowLeft, ChevronRight, Search, Star } from "lucide-react";
 import type { Opening } from "@/core/openings/schema";
@@ -17,11 +18,12 @@ type CategoryKey =
   | "flank"
   | "trap";
 
-type LibraryTab = "general" | "detailed";
+type LibraryTab = "general" | "second";
 
 interface LibraryOpening {
   id: string;
   bookFile: string;
+  preset: LibraryTab;
   nameRu: string;
   nameEn: string;
   category: CategoryKey;
@@ -136,14 +138,13 @@ function parseClassificationLine(line: string): {
   };
 }
 
-function buildLibraryOpenings(): LibraryOpening[] {
+function buildLibraryOpenings(booksIndexInput: Record<string, string>, preset: LibraryTab): LibraryOpening[] {
   const openings = openingsJson as Opening[];
-  const booksIndex = booksIndexJson as Record<string, string>;
 
   const openingById = new Map(openings.map((opening) => [opening.id, opening]));
   const openingIdByBookFile = new Map<string, string>();
 
-  for (const [openingId, path] of Object.entries(booksIndex)) {
+  for (const [openingId, path] of Object.entries(booksIndexInput)) {
     const bookFile = path.split("/").pop() ?? path;
     openingIdByBookFile.set(bookFile, openingId);
   }
@@ -164,11 +165,15 @@ function buildLibraryOpenings(): LibraryOpening[] {
     }
 
     const openingId = openingIdByBookFile.get(parsed.bookFile);
-    const opening = openingId ? openingById.get(openingId) : undefined;
+    if (!openingId) {
+      continue;
+    }
+    const opening = openingById.get(openingId);
 
     result.push({
       id: opening?.id ?? fileStem(parsed.bookFile).toLowerCase().replace(/[^a-z0-9]+/g, "-"),
       bookFile: parsed.bookFile,
+      preset,
       nameRu: parsed.nameRu,
       nameEn: opening?.name ?? fileStem(parsed.bookFile).replace(/_/g, " "),
       category,
@@ -181,7 +186,8 @@ function buildLibraryOpenings(): LibraryOpening[] {
   return result;
 }
 
-const GENERAL_OPENINGS = buildLibraryOpenings();
+const GENERAL_OPENINGS = buildLibraryOpenings(booksIndexJson as Record<string, string>, "general");
+const SECOND_OPENINGS = buildLibraryOpenings(booksSecondIndexJson as Record<string, string>, "second");
 
 export function PopupLibrary() {
   const [tab, setTab] = useState<LibraryTab>("general");
@@ -215,13 +221,10 @@ export function PopupLibrary() {
     };
   }, []);
 
-  const openingsData = GENERAL_OPENINGS;
+  const hasSecondPreset = SECOND_OPENINGS.length > 0;
+  const openingsData = tab === "second" && hasSecondPreset ? SECOND_OPENINGS : GENERAL_OPENINGS;
 
   const filtered = useMemo(() => {
-    if (tab !== "general") {
-      return [];
-    }
-
     let result = openingsData;
     if (searchQuery) {
       const q = searchQuery.toLowerCase();
@@ -276,7 +279,7 @@ export function PopupLibrary() {
     });
   };
 
-  if (selectedOpening && tab === "general") {
+  if (selectedOpening) {
     return (
       <div className="flex flex-col h-full animate-fade-in-up">
         <div className="p-4 flex flex-col gap-4">
@@ -321,7 +324,12 @@ export function PopupLibrary() {
           />
         </div>
 
-        <div className="grid grid-cols-2 rounded-xl p-1 bg-card border border-border/60">
+        <div
+          className={cn(
+            "grid rounded-xl p-1 bg-card border border-border/60",
+            hasSecondPreset ? "grid-cols-2" : "grid-cols-1"
+          )}
+        >
           <button
             type="button"
             onClick={() => {
@@ -336,33 +344,30 @@ export function PopupLibrary() {
           >
             Общие
           </button>
-          <button
-            type="button"
-            onClick={() => {
-              setTab("detailed");
-              setSelectedCategory(null);
-              setSelectedOpening(null);
-            }}
-            className={cn(
-              "py-2 text-xs font-semibold rounded-lg transition-all",
-              tab === "detailed" ? "bg-primary/20 text-primary" : "text-muted-foreground hover:text-foreground"
-            )}
-          >
-            Подробные
-          </button>
+          {hasSecondPreset && (
+            <button
+              type="button"
+              onClick={() => {
+                setTab("second");
+                setSelectedCategory(null);
+                setSelectedOpening(null);
+              }}
+              className={cn(
+                "py-2 text-xs font-semibold rounded-lg transition-all",
+                tab === "second" ? "bg-primary/20 text-primary" : "text-muted-foreground hover:text-foreground"
+              )}
+            >
+              Вторые
+            </button>
+          )}
         </div>
       </div>
 
-      {tab === "detailed" ? (
-        <div className="flex-1 px-4 pb-4">
-          <div className="h-full rounded-xl border border-border/60 bg-card/80 p-4">
-            <h3 className="text-sm font-semibold text-foreground mb-1">Подробные пресеты</h3>
-            <p className="text-xs text-muted-foreground">Раздел будет подключен следующей итерацией.</p>
-          </div>
-        </div>
-      ) : !selectedCategory && !searchQuery ? (
+      {!selectedCategory && !searchQuery ? (
         <div className="flex-1 px-4 pb-4 overflow-y-auto">
-          <h3 className="text-[10px] text-muted-foreground uppercase tracking-wider font-medium mb-3">Категории дебютов</h3>
+          <h3 className="text-[10px] text-muted-foreground uppercase tracking-wider font-medium mb-2">
+            {tab === "second" ? "Вторые дебюты" : "Категории дебютов"}
+          </h3>
           <div className="flex flex-col gap-2">
             {CATEGORY_ORDER.map((category) => (
               <button
