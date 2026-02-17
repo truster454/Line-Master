@@ -10,24 +10,21 @@ const PERFORMANCE_PROFILES: Record<
     settingsSyncIntervalMs: number
     reportDebounceMs: number
     mutationThrottleMs: number
-    minReportIntervalMs: number
     maxOverlayMoves: number
   }
 > = {
   standard: {
     pollIntervalMs: 2500,
-    settingsSyncIntervalMs: 30000,
-    reportDebounceMs: 160,
-    mutationThrottleMs: 420,
-    minReportIntervalMs: 700,
+    settingsSyncIntervalMs: 6000,
+    reportDebounceMs: 120,
+    mutationThrottleMs: 0,
     maxOverlayMoves: Number.MAX_SAFE_INTEGER
   },
   economy: {
     pollIntervalMs: 5200,
-    settingsSyncIntervalMs: 45000,
+    settingsSyncIntervalMs: 10000,
     reportDebounceMs: 280,
     mutationThrottleMs: 850,
-    minReportIntervalMs: 900,
     maxOverlayMoves: 3
   }
 }
@@ -42,49 +39,6 @@ let reportQueued = false
 let forceNextReport = false
 let settingsSyncInFlight = false
 let lastMutationQueuedAt = 0
-let lastReportStartedAt = 0
-
-function activePollIntervalMs(): number {
-  const base = getProfile().pollIntervalMs
-  if (hintsEnabled) {
-    return base
-  }
-  return Math.max(9000, Math.floor(base * 3))
-}
-
-function activeSettingsSyncIntervalMs(): number {
-  const base = getProfile().settingsSyncIntervalMs
-  if (hintsEnabled) {
-    return base
-  }
-  return Math.max(60000, Math.floor(base * 2))
-}
-
-function collectObservationRoots(): Element[] {
-  const selectors = window.location.hostname.includes('chess.com')
-    ? [
-        'wc-chess-board',
-        'chess-board',
-        '[data-cy="board-layout-board"]',
-        '.board',
-        '[data-cy="move-list"]',
-        '.vertical-move-list-component',
-        '.move-list-component'
-      ]
-    : window.location.hostname.includes('lichess.org')
-      ? ['cg-board', '.analyse__moves', '.game__moves', '.rmoves']
-      : []
-
-  const roots: Element[] = []
-  for (const selector of selectors) {
-    const node = document.querySelector(selector)
-    if (!node || roots.includes(node)) {
-      continue
-    }
-    roots.push(node)
-  }
-  return roots
-}
 
 function getProfile(): (typeof PERFORMANCE_PROFILES)[PerformanceMode] {
   return PERFORMANCE_PROFILES[performanceMode]
@@ -175,18 +129,7 @@ async function flushQueuedReport(): Promise<void> {
   reportQueued = false
   const force = forceNextReport
   forceNextReport = false
-
-  if (!force) {
-    const elapsed = Date.now() - lastReportStartedAt
-    const minReportIntervalMs = getProfile().minReportIntervalMs
-    if (elapsed < minReportIntervalMs) {
-      queueReport()
-      return
-    }
-  }
-
   reportInFlight = true
-  lastReportStartedAt = Date.now()
 
   try {
     await reportPosition(force)
@@ -246,7 +189,7 @@ function startPollLoop(): void {
         queueReport()
       }
       tick()
-    }, activePollIntervalMs())
+    }, getProfile().pollIntervalMs)
   }
 
   tick()
@@ -259,7 +202,7 @@ function startSettingsLoop(): void {
         void syncRuntimeSettings()
       }
       tick()
-    }, activeSettingsSyncIntervalMs())
+    }, getProfile().settingsSyncIntervalMs)
   }
 
   tick()
@@ -271,43 +214,15 @@ function startReporting(): void {
   const runtime = globalThis.chrome?.runtime
   if (runtime?.onMessage) {
     runtime.onMessage.addListener((message: unknown) => {
-      const payload = message as {
-        type?: string
-        payload?: PositionInsight | { hintsEnabled?: boolean; performanceMode?: PerformanceMode }
-      }
+      const payload = message as { type?: string; payload?: PositionInsight }
       if (payload.type === 'position:state' && payload.payload) {
-        const insightPayload = payload.payload as PositionInsight
-        if (lastInsight?.updatedAt === insightPayload.updatedAt) {
+        if (lastInsight?.updatedAt === payload.payload.updatedAt) {
           return
         }
-        lastInsight = insightPayload
-        hintsEnabled = Boolean(insightPayload.hintsEnabled)
-        performanceMode = insightPayload.performanceMode ?? performanceMode
-        updateBoardSuggestion(insightPayload, { maxMoves: getProfile().maxOverlayMoves })
-      }
-
-      if (payload.type === 'settings:state' && payload.payload) {
-        const settingsPayload = payload.payload as { hintsEnabled?: boolean; performanceMode?: PerformanceMode }
-        const nextHintsEnabled = Boolean(settingsPayload.hintsEnabled)
-        const nextPerformanceMode = settingsPayload.performanceMode === 'economy' ? 'economy' : 'standard'
-        const hintsChanged = nextHintsEnabled !== hintsEnabled
-        const modeChanged = nextPerformanceMode !== performanceMode
-        if (!hintsChanged && !modeChanged) {
-          return
-        }
-
-        hintsEnabled = nextHintsEnabled
-        performanceMode = nextPerformanceMode
-
-        if (!nextHintsEnabled) {
-          updateBoardSuggestion({ ...(lastInsight ?? ({} as PositionInsight)), hintsEnabled: false } as PositionInsight)
-          return
-        }
-
-        if (lastInsight) {
-          updateBoardSuggestion({ ...lastInsight, hintsEnabled: true }, { maxMoves: getProfile().maxOverlayMoves })
-        }
-        queueReport(true)
+        lastInsight = payload.payload
+        hintsEnabled = Boolean(payload.payload.hintsEnabled)
+        performanceMode = payload.payload.performanceMode ?? performanceMode
+        updateBoardSuggestion(payload.payload, { maxMoves: getProfile().maxOverlayMoves })
       }
     })
   }
@@ -316,10 +231,6 @@ function startReporting(): void {
   void syncRuntimeSettings()
 
   const observer = new MutationObserver(() => {
-    if (!hintsEnabled) {
-      return
-    }
-
     const mutationThrottleMs = getProfile().mutationThrottleMs
     if (mutationThrottleMs > 0) {
       const now = Date.now()
@@ -331,40 +242,24 @@ function startReporting(): void {
     queueReport()
   })
 
-  const observeConfig: MutationObserverInit = {
+  observer.observe(document.body ?? document.documentElement, {
     subtree: true,
     childList: true,
     attributes: false,
     characterData: false
-  }
-
-  const bindObserver = () => {
-    observer.disconnect()
-    const roots = collectObservationRoots()
-    if (roots.length === 0) {
-      observer.observe(document.body ?? document.documentElement, observeConfig)
-      return
-    }
-    for (const root of roots) {
-      observer.observe(root, observeConfig)
-    }
-  }
-
-  bindObserver()
+  })
 
   startPollLoop()
   startSettingsLoop()
 
   document.addEventListener('visibilitychange', () => {
     if (!document.hidden) {
-      bindObserver()
       queueReport(true)
       void syncRuntimeSettings()
     }
   })
 
   window.addEventListener('focus', () => {
-    bindObserver()
     queueReport(true)
     void syncRuntimeSettings()
   })

@@ -40,16 +40,37 @@ let settingsLoadInFlight: Promise<void> | null = null
 let favoritesReady = false
 let favoritesLoadInFlight: Promise<void> | null = null
 let favoriteIds = new Set<string>()
+let favoritesMutationQueue: Promise<void> = Promise.resolve()
 
 const CLASSIFICATION_LINE_RE = /^(\S+)\s{2,}(.+?)\s{2,}(.+?)\s{2,}(.+?)\s{2,}(.+?)(?:\s{2,}(.+))?$/
 const RUS_NAME_BY_BOOK_FILE = new Map<string, string>()
 const RATING_BY_BOOK_FILE = new Map<string, RatingRange>()
 const RATING_BY_OPENING_ID = new Map<string, RatingRange>()
+const COLOR_BY_BOOK_FILE = new Map<string, 'w' | 'b'>()
+const COLOR_BY_OPENING_ID = new Map<string, 'w' | 'b'>()
 const booksIndex = booksIndexData as Record<string, string>
+
+function normalizeOpeningId(value: string): string {
+  return value.trim().toLowerCase()
+}
 
 function normalizeRatingRange(value: string): RatingRange | null {
   const normalized = value.replace(/–/g, '-').replace(/\s+/g, '')
   return (RATING_ORDER as string[]).includes(normalized) ? (normalized as RatingRange) : null
+}
+
+function normalizeOpeningColor(value?: string): 'w' | 'b' | null {
+  const normalized = (value ?? '').trim().toLowerCase()
+  if (!normalized) {
+    return null
+  }
+  if (normalized === 'white' || normalized === 'w' || normalized.includes('бел')) {
+    return 'w'
+  }
+  if (normalized === 'black' || normalized === 'b' || normalized.includes('чер') || normalized.includes('чёр')) {
+    return 'b'
+  }
+  return null
 }
 
 for (const rawLine of classificationRaw.split(/\r?\n/)) {
@@ -66,6 +87,10 @@ for (const rawLine of classificationRaw.split(/\r?\n/)) {
   if (lineRating) {
     RATING_BY_BOOK_FILE.set(match[1], lineRating)
   }
+  const lineColor = normalizeOpeningColor(match[6])
+  if (lineColor) {
+    COLOR_BY_BOOK_FILE.set(match[1], lineColor)
+  }
 }
 
 for (const [openingId, path] of Object.entries(booksIndex)) {
@@ -76,6 +101,10 @@ for (const [openingId, path] of Object.entries(booksIndex)) {
   const mappedRating = RATING_BY_BOOK_FILE.get(bookFile)
   if (mappedRating) {
     RATING_BY_OPENING_ID.set(openingId, mappedRating)
+  }
+  const mappedColor = COLOR_BY_BOOK_FILE.get(bookFile)
+  if (mappedColor) {
+    COLOR_BY_OPENING_ID.set(normalizeOpeningId(openingId), mappedColor)
   }
 }
 
@@ -105,7 +134,6 @@ let latestInsight: PositionInsight = {
   bookStatus: 'position-not-detected',
   updatedAt: Date.now()
 }
-let latestSnapshotSignature = ''
 
 async function loadHintsEnabled(): Promise<boolean> {
   const result = await chrome.storage.local.get(HINTS_ENABLED_KEY)
@@ -200,7 +228,7 @@ async function refreshFavoritesFromStorage(force = false): Promise<void> {
   if (!favoritesLoadInFlight) {
     favoritesLoadInFlight = (async () => {
       const stored = await favoritesRepo.list()
-      favoriteIds = new Set(stored)
+      favoriteIds = new Set(stored.map(normalizeOpeningId).filter(Boolean))
       favoritesReady = true
     })().finally(() => {
       favoritesLoadInFlight = null
@@ -208,6 +236,15 @@ async function refreshFavoritesFromStorage(force = false): Promise<void> {
   }
 
   await favoritesLoadInFlight
+}
+
+function enqueueFavoritesMutation(task: () => Promise<void>): Promise<void> {
+  favoritesMutationQueue = favoritesMutationQueue
+    .then(task)
+    .catch(() => {
+      // Keep queue alive even if a mutation fails.
+    })
+  return favoritesMutationQueue
 }
 
 function aggregateMoves(
@@ -223,7 +260,8 @@ function aggregateMoves(
   let seenIndex = 0
 
   for (const hit of hits) {
-    const isFavoriteBook = favorites.has(hit.openingId)
+    const normalizedOpeningId = normalizeOpeningId(hit.openingId)
+    const isFavoriteBook = favorites.has(normalizedOpeningId)
     for (const candidate of hit.lookup.candidates) {
       const existing = byMove.get(candidate.uci)
       if (!existing) {
@@ -233,7 +271,7 @@ function aggregateMoves(
           booksCount: 1,
           favoriteBooksCount: isFavoriteBook ? 1 : 0,
           firstSeenIndex: seenIndex,
-          openingIds: [hit.openingId]
+          openingIds: [normalizedOpeningId]
         })
         seenIndex += 1
         continue
@@ -243,8 +281,8 @@ function aggregateMoves(
       if (isFavoriteBook) {
         existing.favoriteBooksCount += 1
       }
-      if (!existing.openingIds.includes(hit.openingId)) {
-        existing.openingIds.push(hit.openingId)
+      if (!existing.openingIds.includes(normalizedOpeningId)) {
+        existing.openingIds.push(normalizedOpeningId)
         existing.booksCount += 1
       }
     }
@@ -261,16 +299,53 @@ function aggregateMoves(
 }
 
 function isFavoriteMove(move: TheoreticalMove, favorites: Set<string>): boolean {
-  return move.openingIds.some((openingId) => favorites.has(openingId))
+  return move.openingIds.some((openingId) => favorites.has(normalizeOpeningId(openingId)))
+}
+
+function selectPreferredHitsForMoves(
+  hits: Awaited<ReturnType<OpeningsService['lookupAllBooksByFen']>>,
+  favorites: Set<string>,
+  playerColor?: 'w' | 'b'
+): Awaited<ReturnType<OpeningsService['lookupAllBooksByFen']>> {
+  const favoriteHits = hits.filter((hit) => favorites.has(normalizeOpeningId(hit.openingId)))
+  if (favoriteHits.length === 0) {
+    return hits
+  }
+
+  if (playerColor) {
+    const favoriteColorHits = favoriteHits.filter(
+      (hit) => COLOR_BY_OPENING_ID.get(normalizeOpeningId(hit.openingId)) === playerColor
+    )
+    if (favoriteColorHits.length > 0) {
+      return favoriteColorHits
+    }
+  }
+
+  return favoriteHits
 }
 
 function selectPrimaryHit(
-  hits: Awaited<ReturnType<OpeningsService['lookupAllBooksByFen']>>
+  hits: Awaited<ReturnType<OpeningsService['lookupAllBooksByFen']>>,
+  favorites: Set<string>,
+  playerColor?: 'w' | 'b'
 ): (typeof hits)[number] {
+  const favoriteHits = hits.filter((hit) => favorites.has(normalizeOpeningId(hit.openingId)))
+  const favoriteColorHits =
+    playerColor
+      ? favoriteHits.filter((hit) => COLOR_BY_OPENING_ID.get(normalizeOpeningId(hit.openingId)) === playerColor)
+      : []
+
+  const candidatePool =
+    favoriteColorHits.length > 0
+      ? favoriteColorHits
+      : favoriteHits.length > 0
+        ? favoriteHits
+        : hits
+
   let best: (typeof hits)[number] | null = null
   let bestWeight = -1
 
-  for (const hit of hits) {
+  for (const hit of candidatePool) {
     const weight = hit.lookup.best?.weight ?? 0
     if (weight > bestWeight) {
       best = hit
@@ -278,7 +353,7 @@ function selectPrimaryHit(
     }
   }
 
-  return best ?? hits[0]
+  return best ?? candidatePool[0] ?? hits[0]
 }
 
 function isOpeningAllowedByRating(openingId: string): boolean {
@@ -304,13 +379,6 @@ function extractFenTurn(fen: string): 'w' | 'b' | null {
   return turn === 'w' || turn === 'b' ? turn : null
 }
 
-function snapshotSignature(snapshot: PositionSnapshot | null): string {
-  if (!snapshot) {
-    return ''
-  }
-  return `${snapshot.source}|${snapshot.fen ?? ''}|${snapshot.moves.join(' ')}`
-}
-
 async function computeInsight(snapshot: PositionSnapshot | null): Promise<PositionInsight> {
   await refreshFavoritesFromStorage()
   const enabled = hintsEnabled
@@ -322,18 +390,6 @@ async function computeInsight(snapshot: PositionSnapshot | null): Promise<Positi
       hintsEnabled: enabled,
       performanceMode,
       bookStatus: 'position-not-detected',
-      updatedAt: Date.now()
-    }
-  }
-
-  if (!enabled) {
-    return {
-      snapshot,
-      theoreticalMoves: [],
-      matchedBooks: 0,
-      hintsEnabled: enabled,
-      performanceMode,
-      bookStatus: snapshot.fen ? 'move-not-found' : 'fen-missing',
       updatedAt: Date.now()
     }
   }
@@ -352,17 +408,7 @@ async function computeInsight(snapshot: PositionSnapshot | null): Promise<Positi
 
   try {
     const activeTurn = extractFenTurn(snapshot.fen)
-    if (snapshot.playerColor && activeTurn && snapshot.playerColor !== activeTurn) {
-      return {
-        snapshot,
-        theoreticalMoves: [],
-        matchedBooks: 0,
-        hintsEnabled: enabled,
-        performanceMode,
-        bookStatus: 'not-player-turn',
-        updatedAt: Date.now()
-      }
-    }
+    const isPlayersTurn = !(snapshot.playerColor && activeTurn && snapshot.playerColor !== activeTurn)
 
     const fullMovesPlayed = getPlayedFullMoves(snapshot.moves.length)
     const maxDepth = DEPTH_LIMIT_BY_RATING[ratingRange]
@@ -393,7 +439,8 @@ async function computeInsight(snapshot: PositionSnapshot | null): Promise<Positi
       }
     }
 
-    const aggregatedMoves = aggregateMoves(hits, favoriteIds)
+    const preferredHitsForMoves = selectPreferredHitsForMoves(hits, favoriteIds, snapshot.playerColor)
+    const aggregatedMoves = aggregateMoves(preferredHitsForMoves, favoriteIds)
     const lineLimit = LINE_LIMIT_BY_RATING[ratingRange]
     const limitedByRatingMoves = (() => {
       const favoriteMoves = aggregatedMoves.filter((move) => isFavoriteMove(move, favoriteIds))
@@ -414,10 +461,11 @@ async function computeInsight(snapshot: PositionSnapshot | null): Promise<Positi
         updatedAt: Date.now()
       }
     }
-    const topHit = selectPrimaryHit(hits)
-    const selectedMove = theoreticalMoves[0]?.uci
+    const topHit = selectPrimaryHit(hits, favoriteIds, snapshot.playerColor)
+    const visibleMoves = isPlayersTurn ? theoreticalMoves : []
+    const selectedMove = visibleMoves[0]?.uci
     const favoriteBookMoveUci = theoreticalMoves.find((move) =>
-      move.openingIds.some((openingId) => favoriteIds.has(openingId))
+      move.openingIds.some((openingId) => favoriteIds.has(normalizeOpeningId(openingId)))
     )?.uci
 
     return {
@@ -425,12 +473,12 @@ async function computeInsight(snapshot: PositionSnapshot | null): Promise<Positi
       openingId: topHit.opening?.id,
       openingName: bookNameFromPath(topHit.path) || topHit.opening?.name,
       bookMoveUci: selectedMove,
-      favoriteBookMoveUci,
-      theoreticalMoves,
+      favoriteBookMoveUci: isPlayersTurn ? favoriteBookMoveUci : undefined,
+      theoreticalMoves: visibleMoves,
       matchedBooks: hits.length,
       hintsEnabled: enabled,
       performanceMode,
-      bookStatus: theoreticalMoves.length > 0 ? 'move-found' : 'move-not-found',
+      bookStatus: isPlayersTurn ? (theoreticalMoves.length > 0 ? 'move-found' : 'move-not-found') : 'not-player-turn',
       updatedAt: Date.now()
     }
   } catch (error) {
@@ -589,14 +637,8 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
     void (async () => {
       await refreshSettingsFromStorage()
       const snapshot = message.payload as PositionSnapshot
-      const signature = snapshotSignature(snapshot)
-      if (signature && signature === latestSnapshotSignature) {
-        sendResponse({ ok: true, payload: latestInsight })
-        return
-      }
       const insight = await computeInsight(snapshot)
       await broadcastInsight(insight)
-      latestSnapshotSignature = signature
       sendResponse({ ok: true, payload: insight })
     })()
     return true
@@ -612,11 +654,15 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
 
   if (message?.type === 'favorites:add') {
     void (async () => {
-      const id = String(message.payload?.id ?? '')
+      const id = normalizeOpeningId(String(message.payload?.id ?? ''))
       if (id) {
-        await favoritesRepo.add(id)
+        await enqueueFavoritesMutation(async () => {
+          await favoritesRepo.add(id)
+          await refreshFavoritesFromStorage(true)
+        })
+      } else {
+        await refreshFavoritesFromStorage(true)
       }
-      await refreshFavoritesFromStorage(true)
       await broadcastFavoritesState()
       if (latestInsight.snapshot) {
         const refreshed = await computeInsight(latestInsight.snapshot)
@@ -629,11 +675,15 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
 
   if (message?.type === 'favorites:remove') {
     void (async () => {
-      const id = String(message.payload?.id ?? '')
+      const id = normalizeOpeningId(String(message.payload?.id ?? ''))
       if (id) {
-        await favoritesRepo.remove(id)
+        await enqueueFavoritesMutation(async () => {
+          await favoritesRepo.remove(id)
+          await refreshFavoritesFromStorage(true)
+        })
+      } else {
+        await refreshFavoritesFromStorage(true)
       }
-      await refreshFavoritesFromStorage(true)
       await broadcastFavoritesState()
       if (latestInsight.snapshot) {
         const refreshed = await computeInsight(latestInsight.snapshot)

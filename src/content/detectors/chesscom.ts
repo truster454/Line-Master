@@ -4,7 +4,7 @@ import { buildFenFromChessComBoard } from '../fen-from-board'
 import { isValidFen } from '../fen-utils'
 
 const FEN_PATTERN = /([pnbrqkPNBRQK1-8]{1,8}(?:\/[pnbrqkPNBRQK1-8]{1,8}){7}\s[wb]\s(?:K?Q?k?q?|-)\s(?:[a-h][36]|-)\s\d+\s\d+)/
-const SCRIPT_SCAN_INTERVAL_MS = 20000
+const SCRIPT_SCAN_INTERVAL_MS = 5000
 
 let lastScriptScanAt = 0
 let cachedScriptFen: string | undefined
@@ -23,10 +23,6 @@ function extractFenFromDom(): string | undefined {
     cachedHref = window.location.href
     cachedScriptFen = undefined
     lastScriptScanAt = 0
-  }
-
-  if (cachedScriptFen) {
-    return cachedScriptFen
   }
 
   const attrSelectors = [
