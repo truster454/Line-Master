@@ -1,7 +1,8 @@
 import { OpeningsService } from '../core/openings'
 import classificationRaw from '../data/openings.classification.txt?raw'
 import { createLogger } from '../shared/logger'
-import type { PerformanceMode, PositionInsight, PositionSnapshot, TheoreticalMove } from '../shared/types'
+import booksIndexData from '../data/books.index.json'
+import type { PerformanceMode, PositionInsight, PositionSnapshot, RatingRange, TheoreticalMove } from '../shared/types'
 import { FavoritesRepo } from './storage'
 
 const log = createLogger('background')
@@ -9,9 +10,31 @@ const openingsService = new OpeningsService()
 const favoritesRepo = new FavoritesRepo()
 const HINTS_ENABLED_KEY = 'hintsEnabled'
 const PERFORMANCE_MODE_KEY = 'performanceMode'
+const RATING_RANGE_KEY = 'ratingRange'
+const LIMITS_DISABLED_KEY = 'limitsDisabled'
+const DEFAULT_RATING_RANGE: RatingRange = '1000-1300'
+const DEPTH_LIMIT_BY_RATING: Record<RatingRange, number> = {
+  '0-700': 3,
+  '700-1000': 4,
+  '1000-1300': 5,
+  '1300-1600': 6,
+  '1600-2000': 8,
+  '2000+': 10
+}
+const LINE_LIMIT_BY_RATING: Record<RatingRange, number> = {
+  '0-700': 2,
+  '700-1000': 3,
+  '1000-1300': 4,
+  '1300-1600': 5,
+  '1600-2000': 7,
+  '2000+': 10
+}
+const RATING_ORDER: RatingRange[] = ['0-700', '700-1000', '1000-1300', '1300-1600', '1600-2000', '2000+']
 
 let hintsEnabled = false
 let performanceMode: PerformanceMode = 'standard'
+let ratingRange: RatingRange = DEFAULT_RATING_RANGE
+let limitsDisabled = false
 let settingsReady = false
 let settingsLoadInFlight: Promise<void> | null = null
 let favoritesReady = false
@@ -20,6 +43,14 @@ let favoriteIds = new Set<string>()
 
 const CLASSIFICATION_LINE_RE = /^(\S+)\s{2,}(.+?)\s{2,}(.+?)\s{2,}(.+?)\s{2,}(.+)$/
 const RUS_NAME_BY_BOOK_FILE = new Map<string, string>()
+const RATING_BY_BOOK_FILE = new Map<string, RatingRange>()
+const RATING_BY_OPENING_ID = new Map<string, RatingRange>()
+const booksIndex = booksIndexData as Record<string, string>
+
+function normalizeRatingRange(value: string): RatingRange | null {
+  const normalized = value.replace(/–/g, '-').replace(/\s+/g, '')
+  return (RATING_ORDER as string[]).includes(normalized) ? (normalized as RatingRange) : null
+}
 
 for (const rawLine of classificationRaw.split(/\r?\n/)) {
   const line = rawLine.trim()
@@ -31,6 +62,38 @@ for (const rawLine of classificationRaw.split(/\r?\n/)) {
     continue
   }
   RUS_NAME_BY_BOOK_FILE.set(match[1], match[2])
+  const lineRating = normalizeRatingRange(match[3])
+  if (lineRating) {
+    RATING_BY_BOOK_FILE.set(match[1], lineRating)
+  }
+}
+
+for (const [openingId, path] of Object.entries(booksIndex)) {
+  const bookFile = path.split('/').pop()
+  if (!bookFile) {
+    continue
+  }
+  const mappedRating = RATING_BY_BOOK_FILE.get(bookFile)
+  if (mappedRating) {
+    RATING_BY_OPENING_ID.set(openingId, mappedRating)
+  }
+}
+
+function makeSettingsPayload() {
+  return {
+    hintsEnabled,
+    performanceMode,
+    ratingRange,
+    limitsDisabled
+  }
+}
+
+async function broadcastSettingsState(): Promise<void> {
+  try {
+    await chrome.runtime.sendMessage({ type: 'settings:state', payload: makeSettingsPayload() })
+  } catch {
+    // popup may be closed; ignore.
+  }
 }
 
 let latestInsight: PositionInsight = {
@@ -63,6 +126,26 @@ async function setPerformanceMode(next: PerformanceMode): Promise<void> {
   await chrome.storage.local.set({ [PERFORMANCE_MODE_KEY]: next })
 }
 
+async function loadRatingRange(): Promise<RatingRange> {
+  const result = await chrome.storage.local.get(RATING_RANGE_KEY)
+  return normalizeRatingRange(String(result[RATING_RANGE_KEY] ?? '')) ?? DEFAULT_RATING_RANGE
+}
+
+async function setRatingRange(next: RatingRange): Promise<void> {
+  ratingRange = next
+  await chrome.storage.local.set({ [RATING_RANGE_KEY]: next })
+}
+
+async function loadLimitsDisabled(): Promise<boolean> {
+  const result = await chrome.storage.local.get(LIMITS_DISABLED_KEY)
+  return Boolean(result[LIMITS_DISABLED_KEY])
+}
+
+async function setLimitsDisabled(next: boolean): Promise<void> {
+  limitsDisabled = next
+  await chrome.storage.local.set({ [LIMITS_DISABLED_KEY]: next })
+}
+
 async function refreshSettingsFromStorage(force = false): Promise<void> {
   if (settingsReady && !force) {
     return
@@ -70,13 +153,17 @@ async function refreshSettingsFromStorage(force = false): Promise<void> {
 
   if (!settingsLoadInFlight) {
     settingsLoadInFlight = (async () => {
-      const [storedHintsEnabled, storedPerformanceMode] = await Promise.all([
+      const [storedHintsEnabled, storedPerformanceMode, storedRatingRange, storedLimitsDisabled] = await Promise.all([
         loadHintsEnabled(),
-        loadPerformanceMode()
+        loadPerformanceMode(),
+        loadRatingRange(),
+        loadLimitsDisabled()
       ])
 
       hintsEnabled = storedHintsEnabled
       performanceMode = storedPerformanceMode
+      ratingRange = storedRatingRange
+      limitsDisabled = storedLimitsDisabled
       latestInsight = {
         ...latestInsight,
         hintsEnabled,
@@ -164,9 +251,6 @@ function aggregateMoves(
 
   return [...byMove.values()]
     .sort((a, b) => {
-      if (a.favoriteBooksCount !== b.favoriteBooksCount) {
-        return b.favoriteBooksCount - a.favoriteBooksCount
-      }
       if (a.totalWeight !== b.totalWeight) {
         return b.totalWeight - a.totalWeight
       }
@@ -175,26 +259,42 @@ function aggregateMoves(
     .map(({ firstSeenIndex, ...rest }) => rest)
 }
 
+function isFavoriteMove(move: TheoreticalMove, favorites: Set<string>): boolean {
+  return move.openingIds.some((openingId) => favorites.has(openingId))
+}
+
 function selectPrimaryHit(
-  hits: Awaited<ReturnType<OpeningsService['lookupAllBooksByFen']>>,
-  favorites: Set<string>
-): { hit: (typeof hits)[number]; fromFavorite: boolean } {
+  hits: Awaited<ReturnType<OpeningsService['lookupAllBooksByFen']>>
+): (typeof hits)[number] {
   let best: (typeof hits)[number] | null = null
-  let bestRank = -1
   let bestWeight = -1
 
   for (const hit of hits) {
-    const rank = favorites.has(hit.openingId) ? 1 : 0
     const weight = hit.lookup.best?.weight ?? 0
-    if (rank > bestRank || (rank === bestRank && weight > bestWeight)) {
+    if (weight > bestWeight) {
       best = hit
-      bestRank = rank
       bestWeight = weight
     }
   }
 
-  const hit = best ?? hits[0]
-  return { hit, fromFavorite: favorites.has(hit.openingId) }
+  return best ?? hits[0]
+}
+
+function isOpeningAllowedByRating(openingId: string): boolean {
+  const openingRating = RATING_BY_OPENING_ID.get(openingId)
+  if (!openingRating) {
+    return true
+  }
+  const openingRank = RATING_ORDER.indexOf(openingRating)
+  const selectedRank = RATING_ORDER.indexOf(ratingRange)
+  if (openingRank === -1 || selectedRank === -1) {
+    return true
+  }
+  return openingRank <= selectedRank
+}
+
+function getPlayedFullMoves(plies: number): number {
+  return Math.ceil(Math.max(0, plies) / 2)
 }
 
 async function computeInsight(snapshot: PositionSnapshot | null): Promise<PositionInsight> {
@@ -225,7 +325,23 @@ async function computeInsight(snapshot: PositionSnapshot | null): Promise<Positi
   }
 
   try {
-    const hits = await openingsService.lookupAllBooksByFen(snapshot.fen)
+    const fullMovesPlayed = getPlayedFullMoves(snapshot.moves.length)
+    const maxDepth = DEPTH_LIMIT_BY_RATING[ratingRange]
+
+    if (!limitsDisabled && fullMovesPlayed > maxDepth) {
+      return {
+        snapshot,
+        theoreticalMoves: [],
+        matchedBooks: 0,
+        hintsEnabled: enabled,
+        performanceMode,
+        bookStatus: 'depth-limit',
+        updatedAt: Date.now()
+      }
+    }
+
+    const hitsAll = await openingsService.lookupAllBooksByFen(snapshot.fen)
+    const hits = limitsDisabled ? hitsAll : hitsAll.filter((hit) => isOpeningAllowedByRating(hit.openingId))
     if (hits.length === 0) {
       return {
         snapshot,
@@ -238,11 +354,32 @@ async function computeInsight(snapshot: PositionSnapshot | null): Promise<Positi
       }
     }
 
-    const theoreticalMoves = aggregateMoves(hits, favoriteIds)
-    const primary = selectPrimaryHit(hits, favoriteIds)
-    const topHit = primary.hit
-    const selectedMove = topHit.lookup.best?.uci ?? theoreticalMoves[0]?.uci
-    const favoriteBookMoveUci = primary.fromFavorite ? selectedMove : undefined
+    const aggregatedMoves = aggregateMoves(hits, favoriteIds)
+    const lineLimit = LINE_LIMIT_BY_RATING[ratingRange]
+    const limitedByRatingMoves = (() => {
+      const favoriteMoves = aggregatedMoves.filter((move) => isFavoriteMove(move, favoriteIds))
+      if (favoriteMoves.length > 0) {
+        return favoriteMoves.slice(0, lineLimit)
+      }
+      return aggregatedMoves.slice(0, lineLimit)
+    })()
+    const theoreticalMoves = limitsDisabled ? aggregatedMoves : limitedByRatingMoves
+    if (theoreticalMoves.length === 0) {
+      return {
+        snapshot,
+        theoreticalMoves: [],
+        matchedBooks: hits.length,
+        hintsEnabled: enabled,
+        performanceMode,
+        bookStatus: 'move-not-found',
+        updatedAt: Date.now()
+      }
+    }
+    const topHit = selectPrimaryHit(hits)
+    const selectedMove = theoreticalMoves[0]?.uci
+    const favoriteBookMoveUci = theoreticalMoves.find((move) =>
+      move.openingIds.some((openingId) => favoriteIds.has(openingId))
+    )?.uci
 
     return {
       snapshot,
@@ -302,6 +439,14 @@ void loadPerformanceMode().then((value) => {
   latestInsight = { ...latestInsight, performanceMode: value, updatedAt: Date.now() }
 })
 
+void loadRatingRange().then((value) => {
+  ratingRange = value
+})
+
+void loadLimitsDisabled().then((value) => {
+  limitsDisabled = value
+})
+
 void refreshSettingsFromStorage(true)
 void refreshFavoritesFromStorage(true)
 
@@ -338,7 +483,7 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
   if (message?.type === 'settings:get') {
     void (async () => {
       await refreshSettingsFromStorage()
-      sendResponse({ ok: true, payload: { hintsEnabled, performanceMode } })
+      sendResponse({ ok: true, payload: makeSettingsPayload() })
     })()
     return true
   }
@@ -349,6 +494,7 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
       await setHintsEnabled(Boolean(message.payload?.enabled))
       const nextInsight: PositionInsight = { ...latestInsight, hintsEnabled, performanceMode, updatedAt: Date.now() }
       await broadcastInsight(nextInsight)
+      await broadcastSettingsState()
       sendResponse({ ok: true, payload: hintsEnabled })
     })()
     return true
@@ -361,7 +507,41 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
       await setPerformanceMode(nextMode)
       const nextInsight: PositionInsight = { ...latestInsight, hintsEnabled, performanceMode, updatedAt: Date.now() }
       await broadcastInsight(nextInsight)
+      await broadcastSettingsState()
       sendResponse({ ok: true, payload: performanceMode })
+    })()
+    return true
+  }
+
+  if (message?.type === 'rating:set') {
+    void (async () => {
+      await refreshSettingsFromStorage()
+      const nextRating = normalizeRatingRange(String(message.payload?.ratingRange ?? ''))
+      if (!nextRating) {
+        sendResponse({ ok: false, error: 'invalid-rating-range' })
+        return
+      }
+      await setRatingRange(nextRating)
+      await broadcastSettingsState()
+      if (latestInsight.snapshot) {
+        const refreshed = await computeInsight(latestInsight.snapshot)
+        await broadcastInsight(refreshed)
+      }
+      sendResponse({ ok: true, payload: ratingRange })
+    })()
+    return true
+  }
+
+  if (message?.type === 'limits:set') {
+    void (async () => {
+      await refreshSettingsFromStorage()
+      await setLimitsDisabled(Boolean(message.payload?.disabled))
+      await broadcastSettingsState()
+      if (latestInsight.snapshot) {
+        const refreshed = await computeInsight(latestInsight.snapshot)
+        await broadcastInsight(refreshed)
+      }
+      sendResponse({ ok: true, payload: limitsDisabled })
     })()
     return true
   }

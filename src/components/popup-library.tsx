@@ -8,6 +8,7 @@ import booksSecondIndexJson from "@/data/books.second.index.json";
 import classificationRaw from "@/data/openings.classification.txt?raw";
 import { ArrowLeft, ChevronRight, Search, Star } from "lucide-react";
 import type { Opening } from "@/core/openings/schema";
+import type { RatingRange } from "@/shared/types";
 
 type CategoryKey =
   | "classical"
@@ -99,6 +100,7 @@ const DIFFICULTY_COLORS: Record<string, string> = {
 };
 
 const RATING_SET = new Set(["0–700", "700–1000", "1000–1300", "1300–1600", "1600–2000", "2000+"]);
+const RATING_ORDER: RatingRange[] = ["0-700", "700-1000", "1000-1300", "1300-1600", "1600-2000", "2000+"];
 
 function fileStem(fileName: string): string {
   return fileName.replace(/\.bin$/i, "");
@@ -110,6 +112,24 @@ function normalizeCategory(raw: string): string {
 
 function normalizeRating(raw: string): string {
   return raw.replace(/-/g, "–").replace(/\s+/g, "");
+}
+
+function classificationValueToRatingBand(value: string): RatingRange | null {
+  const normalized = value.replace(/–/g, "-").replace(/\s+/g, "");
+  return (RATING_ORDER as string[]).includes(normalized) ? (normalized as RatingRange) : null;
+}
+
+function isAllowedBySelectedRating(openingRating: string, selectedRating: RatingRange): boolean {
+  const openingBand = classificationValueToRatingBand(openingRating);
+  if (!openingBand) {
+    return true;
+  }
+  const openingRank = RATING_ORDER.indexOf(openingBand);
+  const selectedRank = RATING_ORDER.indexOf(selectedRating);
+  if (openingRank === -1 || selectedRank === -1) {
+    return true;
+  }
+  return openingRank <= selectedRank;
 }
 
 function parseClassificationLine(line: string): {
@@ -195,6 +215,8 @@ export function PopupLibrary() {
   const [selectedCategory, setSelectedCategory] = useState<CategoryKey | null>(null);
   const [selectedOpening, setSelectedOpening] = useState<LibraryOpening | null>(null);
   const [favoriteIds, setFavoriteIds] = useState<Set<string>>(new Set());
+  const [selectedRatingRange, setSelectedRatingRange] = useState<RatingRange>("1000-1300");
+  const [limitsDisabled, setLimitsDisabled] = useState(false);
 
   useEffect(() => {
     const runtime = globalThis.chrome?.runtime;
@@ -208,10 +230,30 @@ export function PopupLibrary() {
       setFavoriteIds(new Set(response.payload as string[]));
     });
 
+    runtime.sendMessage({ type: "settings:get" }, (response) => {
+      if (!response?.ok || !response.payload) {
+        return;
+      }
+      const payload = response.payload as { ratingRange?: RatingRange; limitsDisabled?: boolean };
+      if (payload.ratingRange) {
+        setSelectedRatingRange(payload.ratingRange);
+      }
+      setLimitsDisabled(Boolean(payload.limitsDisabled));
+    });
+
     const onMessage = (message: unknown) => {
-      const payload = message as { type?: string; payload?: string[] };
+      const payload = message as {
+        type?: string;
+        payload?: string[] | { ratingRange?: RatingRange; limitsDisabled?: boolean };
+      };
       if (payload.type === "favorites:state" && Array.isArray(payload.payload)) {
         setFavoriteIds(new Set(payload.payload));
+      }
+      if (payload.type === "settings:state" && payload.payload && !Array.isArray(payload.payload)) {
+        if (payload.payload.ratingRange) {
+          setSelectedRatingRange(payload.payload.ratingRange);
+        }
+        setLimitsDisabled(Boolean(payload.payload.limitsDisabled));
       }
     };
 
@@ -418,6 +460,10 @@ export function PopupLibrary() {
 
           <div className="flex flex-col gap-2">
             {filtered.map((opening) => (
+              (() => {
+                const isOutOfRating =
+                  !limitsDisabled && !isAllowedBySelectedRating(opening.ratingRange, selectedRatingRange);
+                return (
               <div
                 key={opening.id}
                 role="button"
@@ -429,18 +475,31 @@ export function PopupLibrary() {
                     setSelectedOpening(opening);
                   }
                 }}
-                className="p-3 rounded-xl bg-card border border-border/50 hover:border-primary/20 transition-all group cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
+                className={cn(
+                  "p-3 rounded-xl border transition-all group cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40",
+                  isOutOfRating
+                    ? "bg-destructive/10 border-destructive/60 hover:border-destructive/70"
+                    : "bg-card border-border/50 hover:border-primary/20"
+                )}
               >
                 <div className="flex items-start justify-between gap-2">
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center justify-between mb-1">
-                      <span className={cn("text-[11px] font-semibold", DIFFICULTY_COLORS[opening.difficultyKey])}>
+                      <span
+                        className={cn(
+                          "text-[11px] font-semibold",
+                          isOutOfRating ? "text-destructive" : DIFFICULTY_COLORS[opening.difficultyKey]
+                        )}
+                      >
                         {DIFFICULTY_LABELS[opening.difficultyKey]}
                       </span>
                       <span className="text-sm font-mono text-muted-foreground">{opening.ratingRange}</span>
                     </div>
 
                     <p className="text-sm font-semibold text-foreground truncate">{opening.nameRu}</p>
+                    {isOutOfRating && (
+                      <p className="text-[10px] text-destructive font-medium mt-1">не по рейтингу</p>
+                    )}
                     {opening.movesPreview && (
                       <p className="text-[10px] text-muted-foreground mt-1 truncate">{opening.movesPreview}</p>
                     )}
@@ -463,6 +522,8 @@ export function PopupLibrary() {
                   </button>
                 </div>
               </div>
+                );
+              })()
             ))}
             {filtered.length === 0 && (
               <div className="p-4 rounded-xl bg-card border border-border/50">

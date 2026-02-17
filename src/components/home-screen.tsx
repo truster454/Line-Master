@@ -5,7 +5,7 @@ import { cn } from "@/lib/utils";
 import { KingIcon } from "./chess-icons";
 import { Wifi, WifiOff } from "lucide-react";
 import { BurstIcon } from "./burst-icon"; // Import BurstIcon
-import type { PositionInsight } from "@/shared/types";
+import type { PositionInsight, RatingRange } from "@/shared/types";
 
 // Chess move classification icons from the user's images
 const CLASSIFICATION_ICONS = [
@@ -35,7 +35,7 @@ export function HomeScreen() {
   const [isActive, setIsActive] = useState(false);
   const [particles, setParticles] = useState<BurstParticle[]>([]);
   const [gameDetected, setGameDetected] = useState(true);
-  const [rating] = useState(1247);
+  const [ratingRange, setRatingRange] = useState<RatingRange>("1000-1300");
   const particleCounter = useRef(0);
   const [insight, setInsight] = useState<PositionInsight>({
     snapshot: null,
@@ -133,12 +133,29 @@ export function HomeScreen() {
       }
     });
 
+    runtime.sendMessage({ type: "settings:get" }, (response) => {
+      if (!response?.ok || !response.payload?.ratingRange) {
+        return;
+      }
+      setRatingRange(response.payload.ratingRange as RatingRange);
+    });
+
     const handler = (message: unknown) => {
-      const payload = message as { type?: string; payload?: PositionInsight };
+      const payload = message as {
+        type?: string;
+        payload?: PositionInsight | { ratingRange?: RatingRange };
+      };
       if (payload.type === "position:state" && payload.payload) {
-        setInsight(payload.payload);
-        setGameDetected(Boolean(payload.payload.snapshot));
-        setIsActive(Boolean(payload.payload.hintsEnabled));
+        const insightPayload = payload.payload as PositionInsight;
+        setInsight(insightPayload);
+        setGameDetected(Boolean(insightPayload.snapshot));
+        setIsActive(Boolean(insightPayload.hintsEnabled));
+      }
+      if (payload.type === "settings:state" && payload.payload) {
+        const settingsPayload = payload.payload as { ratingRange?: RatingRange };
+        if (settingsPayload.ratingRange) {
+          setRatingRange(settingsPayload.ratingRange);
+        }
       }
     };
 
@@ -147,7 +164,7 @@ export function HomeScreen() {
   }, []);
 
   return (
-    <div className="flex flex-col items-center justify-start h-full relative px-6 pt-4 pb-24 overflow-y-auto">
+    <div className="flex flex-col items-center justify-start h-full relative px-6 pt-4 pb-24 overflow-hidden">
       {/* Decorative background elements */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         {/* Radial glow behind button */}
@@ -326,16 +343,11 @@ export function HomeScreen() {
           </span>
         </div>
 
-        {/* Rating display */}
-        <div className="flex items-center gap-3 px-4 py-2 rounded-xl bg-card border border-border/50">
-          <div className="flex flex-col items-center">
-            <span className="text-[9px] text-muted-foreground uppercase tracking-wider">Рейтинг</span>
-            <span className="text-xl font-bold font-mono text-foreground tabular-nums">{rating}</span>
-          </div>
-          <div className="w-px h-8 bg-border" />
-          <div className="flex flex-col items-center">
+        {/* Rating range display */}
+        <div className="flex items-center px-5 py-2 rounded-xl bg-card border border-border/50">
+          <div className="flex flex-col items-center w-full">
             <span className="text-[9px] text-muted-foreground uppercase tracking-wider">Диапазон</span>
-            <span className="text-xs font-semibold text-primary">1000-1300</span>
+            <span className="text-sm font-semibold text-primary">{ratingRange}</span>
           </div>
         </div>
       </div>
