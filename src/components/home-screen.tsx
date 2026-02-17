@@ -68,23 +68,23 @@ export function HomeScreen() {
     }
 
     setParticles((prev) => {
-      // Cap at 30 concurrent particles for performance
+      // Keep particle count low to avoid constant heavy rerenders in popup.
       const combined = [...prev, ...newParticles];
-      return combined.length > 30 ? combined.slice(-30) : combined;
+      return combined.length > 10 ? combined.slice(-10) : combined;
     });
 
     // Clean up these particles after animation completes
     const ids = newParticles.map((p) => p.id);
     setTimeout(() => {
       setParticles((prev) => prev.filter((p) => !ids.includes(p.id)));
-    }, 2000);
+    }, 1400);
   }, []);
 
   // Continuous stream while active — small groups very frequently
   useEffect(() => {
     if (!isActive) return;
     emitParticles();
-    const interval = setInterval(emitParticles, 240);
+    const interval = setInterval(emitParticles, 900);
     return () => clearInterval(interval);
   }, [isActive, emitParticles]);
 

@@ -105,6 +105,7 @@ let latestInsight: PositionInsight = {
   bookStatus: 'position-not-detected',
   updatedAt: Date.now()
 }
+let latestSnapshotSignature = ''
 
 async function loadHintsEnabled(): Promise<boolean> {
   const result = await chrome.storage.local.get(HINTS_ENABLED_KEY)
@@ -303,6 +304,13 @@ function extractFenTurn(fen: string): 'w' | 'b' | null {
   return turn === 'w' || turn === 'b' ? turn : null
 }
 
+function snapshotSignature(snapshot: PositionSnapshot | null): string {
+  if (!snapshot) {
+    return ''
+  }
+  return `${snapshot.source}|${snapshot.fen ?? ''}|${snapshot.moves.join(' ')}`
+}
+
 async function computeInsight(snapshot: PositionSnapshot | null): Promise<PositionInsight> {
   await refreshFavoritesFromStorage()
   const enabled = hintsEnabled
@@ -314,6 +322,18 @@ async function computeInsight(snapshot: PositionSnapshot | null): Promise<Positi
       hintsEnabled: enabled,
       performanceMode,
       bookStatus: 'position-not-detected',
+      updatedAt: Date.now()
+    }
+  }
+
+  if (!enabled) {
+    return {
+      snapshot,
+      theoreticalMoves: [],
+      matchedBooks: 0,
+      hintsEnabled: enabled,
+      performanceMode,
+      bookStatus: snapshot.fen ? 'move-not-found' : 'fen-missing',
       updatedAt: Date.now()
     }
   }
@@ -569,8 +589,14 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
     void (async () => {
       await refreshSettingsFromStorage()
       const snapshot = message.payload as PositionSnapshot
+      const signature = snapshotSignature(snapshot)
+      if (signature && signature === latestSnapshotSignature) {
+        sendResponse({ ok: true, payload: latestInsight })
+        return
+      }
       const insight = await computeInsight(snapshot)
       await broadcastInsight(insight)
+      latestSnapshotSignature = signature
       sendResponse({ ok: true, payload: insight })
     })()
     return true
