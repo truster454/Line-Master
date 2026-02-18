@@ -33,3 +33,6 @@ coverage/
 
 # Environment
 .env
+
+# Local docs
+AGENTS.md
