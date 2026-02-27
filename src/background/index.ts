@@ -2,7 +2,7 @@ import { OpeningsService } from '../core/openings'
 import classificationRaw from '../data/openings.classification.txt?raw'
 import { createLogger } from '../shared/logger'
 import booksIndexData from '../data/books.index.json'
-import type { PerformanceMode, PositionInsight, PositionSnapshot, RatingRange, TheoreticalMove } from '../shared/types'
+import type { PerformanceMode, PositionInsight, PositionSnapshot, RatingRange, TheoreticalMove, UILanguage } from '../shared/types'
 import { FavoritesRepo } from './storage'
 
 const log = createLogger('background')
@@ -12,7 +12,9 @@ const HINTS_ENABLED_KEY = 'hintsEnabled'
 const PERFORMANCE_MODE_KEY = 'performanceMode'
 const RATING_RANGE_KEY = 'ratingRange'
 const LIMITS_DISABLED_KEY = 'limitsDisabled'
+const UI_LANGUAGE_KEY = 'uiLanguage'
 const DEFAULT_RATING_RANGE: RatingRange = '1000-1300'
+const DEFAULT_UI_LANGUAGE: UILanguage = 'en'
 const DEPTH_LIMIT_BY_RATING: Record<RatingRange, number> = {
   '0-700': 3,
   '700-1000': 4,
@@ -35,6 +37,7 @@ let hintsEnabled = false
 let performanceMode: PerformanceMode = 'standard'
 let ratingRange: RatingRange = DEFAULT_RATING_RANGE
 let limitsDisabled = false
+let uiLanguage: UILanguage = DEFAULT_UI_LANGUAGE
 let settingsReady = false
 let settingsLoadInFlight: Promise<void> | null = null
 let favoritesReady = false
@@ -113,7 +116,8 @@ function makeSettingsPayload() {
     hintsEnabled,
     performanceMode,
     ratingRange,
-    limitsDisabled
+    limitsDisabled,
+    uiLanguage
   }
 }
 
@@ -175,6 +179,16 @@ async function setLimitsDisabled(next: boolean): Promise<void> {
   await chrome.storage.local.set({ [LIMITS_DISABLED_KEY]: next })
 }
 
+async function loadUiLanguage(): Promise<UILanguage> {
+  const result = await chrome.storage.local.get(UI_LANGUAGE_KEY)
+  return result[UI_LANGUAGE_KEY] === 'ru' ? 'ru' : DEFAULT_UI_LANGUAGE
+}
+
+async function setUiLanguage(next: UILanguage): Promise<void> {
+  uiLanguage = next
+  await chrome.storage.local.set({ [UI_LANGUAGE_KEY]: next })
+}
+
 async function refreshSettingsFromStorage(force = false): Promise<void> {
   if (settingsReady && !force) {
     return
@@ -182,17 +196,19 @@ async function refreshSettingsFromStorage(force = false): Promise<void> {
 
   if (!settingsLoadInFlight) {
     settingsLoadInFlight = (async () => {
-      const [storedHintsEnabled, storedPerformanceMode, storedRatingRange, storedLimitsDisabled] = await Promise.all([
+      const [storedHintsEnabled, storedPerformanceMode, storedRatingRange, storedLimitsDisabled, storedUiLanguage] = await Promise.all([
         loadHintsEnabled(),
         loadPerformanceMode(),
         loadRatingRange(),
-        loadLimitsDisabled()
+        loadLimitsDisabled(),
+        loadUiLanguage()
       ])
 
       hintsEnabled = storedHintsEnabled
       performanceMode = storedPerformanceMode
       ratingRange = storedRatingRange
       limitsDisabled = storedLimitsDisabled
+      uiLanguage = storedUiLanguage
       latestInsight = {
         ...latestInsight,
         hintsEnabled,
@@ -208,16 +224,17 @@ async function refreshSettingsFromStorage(force = false): Promise<void> {
   await settingsLoadInFlight
 }
 
-function bookNameFromPath(path: string): string {
+function fallbackBookNameFromPath(path: string): string {
   const file = path.split('/').pop() ?? ''
-  const byClassification = RUS_NAME_BY_BOOK_FILE.get(file)
-  if (byClassification) {
-    return byClassification
-  }
   return file
     .replace(/\.bin$/i, '')
     .replace(/_/g, ' ')
     .trim()
+}
+
+function bookNameRuFromPath(path: string): string {
+  const file = path.split('/').pop() ?? ''
+  return RUS_NAME_BY_BOOK_FILE.get(file) ?? fallbackBookNameFromPath(path)
 }
 
 async function refreshFavoritesFromStorage(force = false): Promise<void> {
@@ -471,7 +488,8 @@ async function computeInsight(snapshot: PositionSnapshot | null): Promise<Positi
     return {
       snapshot,
       openingId: topHit.opening?.id,
-      openingName: bookNameFromPath(topHit.path) || topHit.opening?.name,
+      openingName: topHit.opening?.name || fallbackBookNameFromPath(topHit.path),
+      openingNameRu: bookNameRuFromPath(topHit.path) || topHit.opening?.name,
       bookMoveUci: selectedMove,
       favoriteBookMoveUci: isPlayersTurn ? favoriteBookMoveUci : undefined,
       theoreticalMoves: visibleMoves,
@@ -532,6 +550,9 @@ void loadRatingRange().then((value) => {
 
 void loadLimitsDisabled().then((value) => {
   limitsDisabled = value
+})
+void loadUiLanguage().then((value) => {
+  uiLanguage = value
 })
 
 void refreshSettingsFromStorage(true)
@@ -633,6 +654,17 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
     return true
   }
 
+  if (message?.type === 'language:set') {
+    void (async () => {
+      await refreshSettingsFromStorage()
+      const nextLanguage: UILanguage = message.payload?.uiLanguage === 'ru' ? 'ru' : 'en'
+      await setUiLanguage(nextLanguage)
+      await broadcastSettingsState()
+      sendResponse({ ok: true, payload: uiLanguage })
+    })()
+    return true
+  }
+
   if (message?.type === 'position:update') {
     void (async () => {
       await refreshSettingsFromStorage()
@@ -648,7 +680,7 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
     void (async () => {
       await refreshFavoritesFromStorage()
       sendResponse({ ok: true, payload: [...favoriteIds] })
-    })
+    })()
     return true
   }
 

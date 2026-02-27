@@ -1,6 +1,7 @@
 export type PositionSource = 'chess.com' | 'lichess' | 'unknown'
 export type SideColor = 'w' | 'b'
 export type RatingRange = '0-700' | '700-1000' | '1000-1300' | '1300-1600' | '1600-2000' | '2000+'
+export type UILanguage = 'en' | 'ru'
 
 export interface PositionSnapshot {
   source: PositionSource
@@ -24,6 +25,7 @@ export interface PositionInsight {
   snapshot: PositionSnapshot | null
   openingId?: string
   openingName?: string
+  openingNameRu?: string
   openingEco?: string
   bookMoveUci?: string
   favoriteBookMoveUci?: string

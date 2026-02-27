@@ -3,6 +3,7 @@
 import { cn } from "@/lib/utils";
 import { BookOpen, Star, Settings, Home } from "lucide-react";
 import { KingIcon } from "./chess-icons";
+import { usePopupLanguage } from "./popup-language";
 
 export type PopupPage =
   | "home"
@@ -19,17 +20,6 @@ interface PopupShellProps {
   onBack?: () => void;
 }
 
-const navItems: {
-  id: PopupPage;
-  label: string;
-  icon: React.ComponentType<{ className?: string }>;
-}[] = [
-  { id: "home", label: "Главная", icon: Home },
-  { id: "library", label: "Дебюты", icon: BookOpen },
-  { id: "favorites", label: "Избранное", icon: Star },
-  { id: "settings", label: "Настройки", icon: Settings },
-];
-
 export function PopupShell({
   activePage,
   onNavigate,
@@ -37,6 +27,19 @@ export function PopupShell({
   title,
   onBack,
 }: PopupShellProps) {
+  const { language } = usePopupLanguage();
+  const isRu = language === "ru";
+  const navItems: {
+    id: PopupPage;
+    label: string;
+    icon: React.ComponentType<{ className?: string }>;
+  }[] = [
+    { id: "home", label: isRu ? "Главная" : "Home", icon: Home },
+    { id: "library", label: isRu ? "Дебюты" : "Openings", icon: BookOpen },
+    { id: "favorites", label: isRu ? "Избранное" : "Favorites", icon: Star },
+    { id: "settings", label: isRu ? "Настройки" : "Settings", icon: Settings },
+  ];
+
   return (
     <div className="w-[380px] h-[560px] flex flex-col bg-background overflow-hidden relative rounded-xl border border-border">
       {/* Header */}
@@ -63,7 +66,7 @@ export function PopupShell({
                   strokeLinejoin="round"
                 />
               </svg>
-              <span className="text-xs">Назад</span>
+              <span className="text-xs">{isRu ? "Назад" : "Back"}</span>
             </button>
           ) : (
             <div className="flex items-center gap-2">

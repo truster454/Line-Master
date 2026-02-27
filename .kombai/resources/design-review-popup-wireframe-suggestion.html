@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Line Master - Redesign Wireframe</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #0f1419 0%, #1a1f2e 100%);
+            padding: 40px 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 500px;
+            width: 100%;
+        }
+        .title {
+            color: #e8eaea;
+            margin-bottom: 30px;
+            text-align: center;
+            font-size: 24px;
+            font-weight: 600;
+        }
+        .subtitle {
+            color: #999;
+            font-size: 12px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .popup {
+            width: 380px;
+            height: 560px;
+            margin: 0 auto;
+            background: #0f1419;
+            border: 1px solid #1a2332;
+            border-radius: 12px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
+            position: relative;
+        }
+
+        /* Header */
+        .header {
+            padding: 16px;
+            border-bottom: 1px solid #1a2332;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(10, 13, 20, 0.8);
+            backdrop-filter: blur(4px);
+        }
+        .logo {
+            width: 32px;
+            height: 32px;
+            background: rgba(250, 192, 35, 0.15);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid rgba(250, 192, 35, 0.2);
+            color: #fac023;
+            font-size: 16px;
+            font-weight: bold;
+        }
+        .header-title {
+            font-size: 13px;
+            font-weight: 600;
+            color: #e8eaea;
+            line-height: 1;
+        }
+        .header-subtitle {
+            font-size: 8px;
+            color: #fac023;
+            opacity: 0.6;
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+        }
+
+        /* Content Area */
+        .content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        /* Section Card with improved spacing and visual hierarchy */
+        .section {
+            background: rgba(20, 24, 35, 0.6);
+            border: 1px solid #1a2332;
+            border-radius: 10px;
+            padding: 12px;
+            overflow: hidden;
+        }
+
+        .section-title {
+            font-size: 9px;
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            color: #666;
+            font-weight: 500;
+            margin-bottom: 8px;
+        }
+
+        /* Status Bar - enhanced visual feedback */
+        .status-bar {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 10px;
+            background: rgba(26, 195, 120, 0.08);
+            border: 1px solid rgba(26, 195, 120, 0.25);
+            border-radius: 8px;
+            margin-bottom: 8px;
+        }
+        .status-dot {
+            width: 5px;
+            height: 5px;
+            background: #1ac378;
+            border-radius: 50%;
+            animation: pulse 2s ease-in-out infinite;
+        }
+        .status-text {
+            font-size: 11px;
+            color: #1ac378;
+            font-weight: 500;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.4; }
+        }
+
+        /* Main Action Button - redesigned for better feedback */
+        .button-zone {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 16px;
+            padding: 16px 0;
+            margin: 12px 0;
+        }
+
+        .launch-button {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: rgba(250, 192, 35, 0.1);
+            border: 2px solid rgba(250, 192, 35, 0.3);
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            transition: all 0.3s ease;
+            position: relative;
+            box-shadow: 0 0 30px rgba(250, 192, 35, 0.08);
+        }
+
+        .launch-button:hover {
+            border-color: rgba(250, 192, 35, 0.5);
+            background: rgba(250, 192, 35, 0.15);
+            box-shadow: 0 0 40px rgba(250, 192, 35, 0.15);
+        }
+
+        .launch-button.active {
+            background: rgba(26, 195, 120, 0.12);
+            border-color: rgba(26, 195, 120, 0.4);
+            box-shadow: 0 0 30px rgba(26, 195, 120, 0.15);
+        }
+
+        .button-icon {
+            font-size: 32px;
+            color: #fac023;
+        }
+
+        .launch-button.active .button-icon {
+            color: #1ac378;
+        }
+
+        .button-label {
+            font-size: 10px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: #fac023;
+            transition: color 0.3s ease;
+        }
+
+        .launch-button.active .button-label {
+            color: #1ac378;
+        }
+
+        /* Info Cards - enhanced with better visual separation */
+        .info-card {
+            background: rgba(20, 24, 35, 0.8);
+            border: 1px solid #1a2332;
+            border-radius: 8px;
+            padding: 10px;
+            font-size: 10px;
+            text-align: center;
+        }
+
+        .info-label {
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            font-size: 8px;
+            margin-bottom: 4px;
+        }
+
+        .info-value {
+            color: #fac023;
+            font-weight: 600;
+            font-size: 11px;
+        }
+
+        .info-card.out-of-range {
+            background: rgba(220, 38, 38, 0.08);
+            border-color: rgba(220, 38, 38, 0.3);
+        }
+
+        .info-card.out-of-range .info-value {
+            color: #dc2626;
+        }
+
+        /* Opening info display */
+        .opening-display {
+            background: linear-gradient(135deg, rgba(250, 192, 35, 0.05), rgba(26, 195, 120, 0.03));
+            border: 1px solid rgba(250, 192, 35, 0.2);
+            border-radius: 8px;
+            padding: 10px;
+        }
+
+        .opening-label {
+            font-size: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            color: #666;
+            margin-bottom: 4px;
+        }
+
+        .opening-name {
+            font-size: 12px;
+            font-weight: 600;
+            color: #fac023;
+            line-height: 1.3;
+        }
+
+        /* Bottom Navigation */
+        .nav {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            padding: 8px 8px;
+            border-top: 1px solid #1a2332;
+            background: rgba(10, 13, 20, 0.9);
+            backdrop-filter: blur(4px);
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 3px;
+            padding: 6px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            color: #666;
+            font-size: 8px;
+        }
+
+        .nav-item:hover {
+            color: #999;
+        }
+
+        .nav-item.active {
+            color: #fac023;
+        }
+
+        .nav-icon {
+            font-size: 16px;
+        }
+
+        /* Annotations */
+        .annotation {
+            color: #999;
+            font-size: 11px;
+            margin-top: 20px;
+            padding: 12px;
+            background: rgba(100, 116, 139, 0.1);
+            border-left: 2px solid #64748b;
+            border-radius: 4px;
+            line-height: 1.5;
+        }
+
+        .improvements {
+            margin-top: 20px;
+            color: #999;
+            font-size: 12px;
+            line-height: 1.6;
+        }
+
+        .improvements h3 {
+            color: #fac023;
+            margin-bottom: 8px;
+            font-size: 13px;
+        }
+
+        .improvements ul {
+            margin-left: 16px;
+            list-style: disc;
+        }
+
+        .improvements li {
+            margin-bottom: 6px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="title">Line Master - Redesigned Layout</div>
+        <div class="subtitle">Enhanced Visual Hierarchy & Improved Micro-interactions</div>
+
+        <div class="popup">
+            <!-- Header -->
+            <div class="header">
+                <div class="logo">♔</div>
+                <div>
+                    <div class="header-title">lineMaster</div>
+                    <div class="header-subtitle">Opening Theory</div>
+                </div>
+            </div>
+
+            <!-- Content -->
+            <div class="content">
+                <!-- Game Detection Status -->
+                <div class="section">
+                    <div class="section-title">Game Status</div>
+                    <div class="status-bar">
+                        <div class="status-dot"></div>
+                        <div class="status-text">Game Detected</div>
+                    </div>
+                </div>
+
+                <!-- Main Launch Button -->
+                <div class="button-zone">
+                    <div class="launch-button">
+                        <div class="button-icon">▶</div>
+                        <div class="button-label">Launch</div>
+                    </div>
+                </div>
+
+                <!-- Quick Info Cards -->
+                <div class="section">
+                    <div class="section-title">Current Settings</div>
+                    <div style="display: flex; gap: 8px;">
+                        <div class="info-card" style="flex: 1;">
+                            <div class="info-label">Rating</div>
+                            <div class="info-value">1000-1300</div>
+                        </div>
+                        <div class="info-card" style="flex: 1;">
+                            <div class="info-label">Mode</div>
+                            <div class="info-value">Standard</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Opening Info -->
+                <div class="opening-display">
+                    <div class="opening-label">Current Opening</div>
+                    <div class="opening-name">King's Indian Attack</div>
+                </div>
+            </div>
+
+            <!-- Navigation -->
+            <div class="nav">
+                <div class="nav-item active">
+                    <div class="nav-icon">🏠</div>
+                    <div>Home</div>
+                </div>
+                <div class="nav-item">
+                    <div class="nav-icon">📚</div>
+                    <div>Library</div>
+                </div>
+                <div class="nav-item">
+                    <div class="nav-icon">⭐</div>
+                    <div>Favorites</div>
+                </div>
+                <div class="nav-item">
+                    <div class="nav-icon">⚙️</div>
+                    <div>Settings</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Design Notes -->
+        <div class="annotation">
+            <strong>Redesign Focus:</strong><br>
+            This wireframe suggests improvements to visual hierarchy, spacing consistency, and micro-interaction feedback. The layout maintains the core functionality while enhancing visual feedback through better color contrast and state transitions.
+        </div>
+
+        <div class="improvements">
+            <h3>Key Design Improvements:</h3>
+            <ul>
+                <li><strong>Better Visual Hierarchy:</strong> Clearer separation between sections with consistent spacing</li>
+                <li><strong>Enhanced State Feedback:</strong> Launch button now has distinct active/inactive states with smooth transitions</li>
+                <li><strong>Improved Readability:</strong> Better contrast for small text, clearer section labels</li>
+                <li><strong>Consistent Spacing:</strong> Standardized gaps and padding throughout</li>
+                <li><strong>Subtle Animations:</strong> Status indicator pulse, button hover effects, smoother transitions</li>
+                <li><strong>Visual Affordance:</strong> Cards and buttons clearly indicate interactivity</li>
+            </ul>
+        </div>
+    </div>
+</body>
+</html>

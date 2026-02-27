@@ -6,6 +6,7 @@ import { KingIcon } from "./chess-icons";
 import { Wifi, WifiOff } from "lucide-react";
 import { BurstIcon } from "./burst-icon"; // Import BurstIcon
 import type { PositionInsight, RatingRange } from "@/shared/types";
+import { usePopupLanguage } from "./popup-language";
 
 // Chess move classification icons from the user's images
 const CLASSIFICATION_ICONS = [
@@ -32,6 +33,8 @@ interface BurstParticle {
 }
 
 export function HomeScreen() {
+  const { language } = usePopupLanguage();
+  const isRu = language === "ru";
   const [isActive, setIsActive] = useState(false);
   const [particles, setParticles] = useState<BurstParticle[]>([]);
   const [gameDetected, setGameDetected] = useState(true);
@@ -46,6 +49,9 @@ export function HomeScreen() {
     bookStatus: "position-not-detected",
     updatedAt: Date.now(),
   });
+  const openingName = isRu
+    ? (insight.openingNameRu ?? insight.openingName)
+    : (insight.openingName ?? insight.openingNameRu);
 
   const emitParticles = useCallback(() => {
     const count = 1; // fewer particles at a time
@@ -324,7 +330,7 @@ export function HomeScreen() {
                 isActive ? "text-accent" : "text-primary"
               )}
             >
-              {isActive ? "Активен" : "Запустить"}
+              {isActive ? (isRu ? "Активен" : "Active") : (isRu ? "Запустить" : "Launch")}
             </span>
           </div>
         </button>
@@ -352,23 +358,23 @@ export function HomeScreen() {
             )}
           </div>
           <span className="text-xs font-medium">
-            {gameDetected ? "Игра обнаружена" : "Игра не обнаружена"}
+            {gameDetected ? (isRu ? "Игра обнаружена" : "Game detected") : (isRu ? "Игра не обнаружена" : "No game detected")}
           </span>
         </div>
 
         {/* Rating range display */}
         <div className="flex items-center px-5 py-2 rounded-xl bg-card border border-border/50">
           <div className="flex flex-col items-center w-full">
-            <span className="text-[9px] text-muted-foreground uppercase tracking-wider">Диапазон</span>
+            <span className="text-[9px] text-muted-foreground uppercase tracking-wider">{isRu ? "Диапазон" : "Range"}</span>
             <span className="text-sm font-semibold text-primary">{ratingRange}</span>
           </div>
         </div>
       </div>
 
       <div className="w-full mt-6 mb-2 p-4 rounded-xl bg-card/90 border border-border/60 relative z-10">
-        <p className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground/80 mb-2">Текущий дебют</p>
+        <p className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground/80 mb-2">{isRu ? "Текущий дебют" : "Current opening"}</p>
         <p className="text-base font-semibold leading-snug bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent">
-          {insight.openingName ? insight.openingName : "Не определен"}
+          {openingName ? openingName : (isRu ? "Не определен" : "Not identified")}
         </p>
       </div>
     </div>

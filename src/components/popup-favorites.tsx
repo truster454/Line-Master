@@ -8,6 +8,7 @@ import classificationRaw from "@/data/openings.classification.txt?raw";
 import { Heart, Star } from "lucide-react";
 import type { Opening } from "@/core/openings/schema";
 import type { RatingRange } from "@/shared/types";
+import { usePopupLanguage } from "./popup-language";
 
 const RATING_ORDER: RatingRange[] = ["0-700", "700-1000", "1000-1300", "1300-1600", "1600-2000", "2000+"];
 
@@ -110,6 +111,8 @@ async function loadFavoritesFromStorage(): Promise<string[]> {
 }
 
 export function PopupFavorites() {
+  const { language } = usePopupLanguage();
+  const isRu = language === "ru";
   const [favoriteIds, setFavoriteIds] = useState<string[]>([]);
   const [selectedRatingRange, setSelectedRatingRange] = useState<RatingRange>("1000-1300");
   const [limitsDisabled, setLimitsDisabled] = useState(false);
@@ -206,14 +209,14 @@ export function PopupFavorites() {
       return {
         id,
         eco: opening?.eco ?? "—",
-        name: ruName ?? opening?.name ?? id,
+        name: isRu ? (ruName ?? opening?.name ?? id) : (opening?.name ?? ruName ?? id),
         ratingRange: openingRating ?? "—",
         openingColor: COLOR_BY_OPENING_ID.get(id) ?? "unknown",
         isOutOfRating,
-        movesPreview: opening?.moves?.slice(0, 8).join(" ") ?? "Линия не хранится в metadata",
+        movesPreview: opening?.moves?.slice(0, 8).join(" ") ?? (isRu ? "Линия не хранится в metadata" : "Line is not stored in metadata"),
       };
     });
-  }, [favoriteIds, selectedRatingRange, limitsDisabled]);
+  }, [favoriteIds, selectedRatingRange, limitsDisabled, isRu]);
 
   const visibleFavorites = useMemo(() => {
     if (showOutOfRating) {
@@ -254,9 +257,11 @@ export function PopupFavorites() {
         <div className="w-16 h-16 rounded-full bg-primary/8 flex items-center justify-center mb-4">
           <Heart className="w-7 h-7 text-primary/40" />
         </div>
-        <h3 className="text-sm font-semibold text-foreground mb-1">Нет избранных дебютов</h3>
+        <h3 className="text-sm font-semibold text-foreground mb-1">{isRu ? "Нет избранных дебютов" : "No favorite openings"}</h3>
         <p className="text-xs text-muted-foreground text-center leading-relaxed">
-          Добавляйте дебюты в избранное, нажимая на звездочку в библиотеке
+          {isRu
+            ? "Добавляйте дебюты в избранное, нажимая на звездочку в библиотеке"
+            : "Add openings to favorites by tapping the star in the library"}
         </p>
       </div>
     );
@@ -266,10 +271,10 @@ export function PopupFavorites() {
     <div className="flex flex-col h-full">
       <div className="px-4 pt-3 pb-2">
         <h3 className="text-[10px] text-muted-foreground uppercase tracking-wider font-medium">
-          Избранные дебюты ({visibleFavorites.length})
+          {(isRu ? "Избранные дебюты" : "Favorite openings")} ({visibleFavorites.length})
         </h3>
         <div className="mt-2 flex items-center justify-between rounded-lg border border-border/50 bg-card/70 px-2.5 py-2">
-          <span className="text-[10px] text-muted-foreground">Показывать не по рейтингу</span>
+          <span className="text-[10px] text-muted-foreground">{isRu ? "Показывать не по рейтингу" : "Show out-of-rating"}</span>
           <button
             type="button"
             onClick={() => setShowOutOfRating((prev) => !prev)}
@@ -277,7 +282,7 @@ export function PopupFavorites() {
               "w-9 h-5 rounded-full transition-all duration-200 relative",
               showOutOfRating ? "bg-primary" : "bg-secondary"
             )}
-            aria-label="Показывать не по рейтингу"
+            aria-label={isRu ? "Показывать не по рейтингу" : "Show out-of-rating"}
           >
             <div
               className={cn(
@@ -290,10 +295,10 @@ export function PopupFavorites() {
       </div>
       <div className="flex-1 px-4 pb-4 overflow-y-auto">
         <div className="flex flex-col gap-3">
-          <FavoritesGroup title="Белые" items={whiteFavorites} onRemove={handleRemoveFavorite} />
-          <FavoritesGroup title="Чёрные" items={blackFavorites} onRemove={handleRemoveFavorite} />
+          <FavoritesGroup title={isRu ? "Белые" : "White"} items={whiteFavorites} onRemove={handleRemoveFavorite} language={language} />
+          <FavoritesGroup title={isRu ? "Чёрные" : "Black"} items={blackFavorites} onRemove={handleRemoveFavorite} language={language} />
           {unknownFavorites.length > 0 && (
-            <FavoritesGroup title="Без цвета" items={unknownFavorites} onRemove={handleRemoveFavorite} />
+            <FavoritesGroup title={isRu ? "Без цвета" : "Unknown"} items={unknownFavorites} onRemove={handleRemoveFavorite} language={language} />
           )}
         </div>
       </div>
@@ -303,10 +308,12 @@ export function PopupFavorites() {
 
 function FavoritesGroup({
   title,
+  language,
   items,
   onRemove,
 }: {
   title: string;
+  language: "en" | "ru";
   items: Array<{
     id: string;
     eco: string;
@@ -316,6 +323,7 @@ function FavoritesGroup({
   }>;
   onRemove: (id: string) => void;
 }) {
+  const isRu = language === "ru";
   return (
     <div>
       <h4 className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium mb-2">
@@ -323,7 +331,7 @@ function FavoritesGroup({
       </h4>
       {items.length === 0 ? (
         <div className="p-3 rounded-xl bg-card border border-border/40">
-          <span className="text-[10px] text-muted-foreground">Пусто</span>
+          <span className="text-[10px] text-muted-foreground">{isRu ? "Пусто" : "Empty"}</span>
         </div>
       ) : (
         <div className="flex flex-col gap-1.5">
@@ -338,7 +346,9 @@ function FavoritesGroup({
               <div className="flex flex-col flex-1 min-w-0">
                 <div className="flex items-center gap-2 mb-0.5">
                   <span className="text-[9px] font-mono text-primary bg-primary/10 px-1 py-0.5 rounded">{opening.eco}</span>
-                  {opening.isOutOfRating && <span className="text-[9px] font-medium text-destructive">не по рейтингу</span>}
+                  {opening.isOutOfRating && (
+                    <span className="text-[9px] font-medium text-destructive">{isRu ? "не по рейтингу" : "out of rating"}</span>
+                  )}
                 </div>
                 <span className="text-sm font-medium text-foreground truncate">{opening.name}</span>
                 <span className="text-[10px] text-muted-foreground font-mono mt-0.5 truncate">{opening.movesPreview}</span>
@@ -347,7 +357,7 @@ function FavoritesGroup({
                 type="button"
                 onClick={() => onRemove(opening.id)}
                 className="p-1.5 rounded-lg hover:bg-secondary transition-colors"
-                aria-label="Remove from favorites"
+                aria-label={isRu ? "Удалить из избранного" : "Remove from favorites"}
               >
                 <Star className="w-4 h-4 text-primary fill-primary" />
               </button>

@@ -9,6 +9,7 @@ import classificationRaw from "@/data/openings.classification.txt?raw";
 import { ArrowLeft, ChevronRight, Search, Star } from "lucide-react";
 import type { Opening } from "@/core/openings/schema";
 import type { RatingRange } from "@/shared/types";
+import { usePopupLanguage } from "./popup-language";
 
 type CategoryKey =
   | "classical"
@@ -44,24 +45,45 @@ const CATEGORY_ORDER: CategoryKey[] = [
   "trap",
 ];
 
-const CATEGORY_LABELS: Record<CategoryKey, string> = {
-  classical: "Классические дебюты",
-  gambit: "Гамбиты",
-  countergambit: "Контргамбиты",
-  hypermodern: "Гипермодерн",
-  system: "Системные дебюты",
-  flank: "Фланговые дебюты",
-  trap: "Ловушки",
+const CATEGORY_LABELS: Record<CategoryKey, { en: string; ru: string }> = {
+  classical: { en: "Classical Openings", ru: "Классические дебюты" },
+  gambit: { en: "Gambits", ru: "Гамбиты" },
+  countergambit: { en: "Countergambits", ru: "Контргамбиты" },
+  hypermodern: { en: "Hypermodern", ru: "Гипермодерн" },
+  system: { en: "System Openings", ru: "Системные дебюты" },
+  flank: { en: "Flank Openings", ru: "Фланговые дебюты" },
+  trap: { en: "Traps", ru: "Ловушки" },
 };
 
-const CATEGORY_DESCRIPTIONS: Record<CategoryKey, string> = {
-  classical: "Минимальный риск, борьба за центр, медленное развитие, позиционная игра.",
-  gambit: "Ранняя жертва материала за компенсацию. Быстрая и острая игра.",
-  countergambit: "Ответ на гамбит или активный ответ на тихий дебют.",
-  hypermodern: "Непрямая оккупация центра, акцент на контригру.",
-  system: "Почти одинаковая расстановка независимо от ходов соперника.",
-  flank: "Нетипичные позиции, расчет на незнакомство соперника.",
-  trap: "Попытка поймать соперника на конкретную ошибку.",
+const CATEGORY_DESCRIPTIONS: Record<CategoryKey, { en: string; ru: string }> = {
+  classical: {
+    en: "Lower risk, central control, gradual development, positional play.",
+    ru: "Минимальный риск, борьба за центр, медленное развитие, позиционная игра.",
+  },
+  gambit: {
+    en: "Early material sacrifice for compensation. Fast and sharp play.",
+    ru: "Ранняя жертва материала за компенсацию. Быстрая и острая игра.",
+  },
+  countergambit: {
+    en: "A response to a gambit or active answer to a quiet opening.",
+    ru: "Ответ на гамбит или активный ответ на тихый дебют.",
+  },
+  hypermodern: {
+    en: "Indirect central control with focus on counterplay.",
+    ru: "Непрямая оккупация центра, акцент на контригру.",
+  },
+  system: {
+    en: "Similar setup regardless of opponent moves.",
+    ru: "Почти одинаковая расстановка независимо от ходов соперника.",
+  },
+  flank: {
+    en: "Unusual positions aimed at opponent unfamiliarity.",
+    ru: "Нетипичные позиции, расчет на незнакомство соперника.",
+  },
+  trap: {
+    en: "Trying to catch an opponent in a concrete mistake.",
+    ru: "Попытка поймать соперника на конкретную ошибку.",
+  },
 };
 
 const CATEGORY_ICON_BY_KEY: Record<CategoryKey, string> = {
@@ -84,12 +106,12 @@ const CATEGORY_MAP: Record<string, CategoryKey> = {
   "Trap openings": "trap",
 };
 
-const DIFFICULTY_LABELS: Record<string, string> = {
-  "Basic": "Базовый",
-  "System-based": "Системный",
-  "Tactical": "Тактический",
-  "Theoretical": "Теоретический",
-  "Conceptual": "Концептуальный",
+const DIFFICULTY_LABELS: Record<string, { en: string; ru: string }> = {
+  "Basic": { en: "Basic", ru: "Базовый" },
+  "System-based": { en: "System", ru: "Системный" },
+  "Tactical": { en: "Tactical", ru: "Тактический" },
+  "Theoretical": { en: "Theoretical", ru: "Теоретический" },
+  "Conceptual": { en: "Conceptual", ru: "Концептуальный" },
 };
 
 const DIFFICULTY_COLORS: Record<string, string> = {
@@ -228,6 +250,8 @@ const GENERAL_OPENINGS = buildLibraryOpenings(booksIndexJson as Record<string, s
 const SECOND_OPENINGS = buildLibraryOpenings(booksSecondIndexJson as Record<string, string>, "second");
 
 export function PopupLibrary() {
+  const { language } = usePopupLanguage();
+  const isRu = language === "ru";
   const [tab, setTab] = useState<LibraryTab>("general");
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<CategoryKey | null>(null);
@@ -304,8 +328,12 @@ export function PopupLibrary() {
     if (selectedCategory) {
       result = result.filter((opening) => opening.category === selectedCategory);
     }
-    return [...result].sort((a, b) => a.nameRu.localeCompare(b.nameRu, "ru"));
-  }, [openingsData, searchQuery, selectedCategory, tab]);
+    return [...result].sort((a, b) => {
+      const aName = isRu ? a.nameRu : a.nameEn;
+      const bName = isRu ? b.nameRu : b.nameEn;
+      return aName.localeCompare(bName);
+    });
+  }, [openingsData, searchQuery, selectedCategory, tab, isRu]);
 
   const categoryCounts = useMemo(() => {
     const counts: Record<CategoryKey, number> = {
@@ -359,13 +387,13 @@ export function PopupLibrary() {
             className="flex items-center gap-1.5 text-muted-foreground hover:text-foreground transition-colors self-start"
           >
             <ArrowLeft className="w-4 h-4" />
-            <span className="text-xs">Назад к списку</span>
+            <span className="text-xs">{isRu ? "Назад к списку" : "Back to list"}</span>
           </button>
 
           <div className="rounded-xl bg-card border border-border/50 p-4">
             <div className="flex items-center justify-between mb-2">
               <span className={cn("text-sm font-semibold", DIFFICULTY_COLORS[selectedOpening.difficultyKey])}>
-                {DIFFICULTY_LABELS[selectedOpening.difficultyKey]}
+                {DIFFICULTY_LABELS[selectedOpening.difficultyKey]?.[language] ?? selectedOpening.difficultyKey}
               </span>
               <div className="flex items-center gap-2">
                 <span className="text-sm font-mono text-muted-foreground">{selectedOpening.ratingRange}</span>
@@ -380,15 +408,15 @@ export function PopupLibrary() {
                   )}
                 >
                   {selectedOpening.openingColor === "white"
-                    ? "Белые"
+                    ? isRu ? "Белые" : "White"
                     : selectedOpening.openingColor === "black"
-                      ? "Чёрные"
-                      : "Цвет не указан"}
+                      ? isRu ? "Чёрные" : "Black"
+                      : isRu ? "Цвет не указан" : "Color unknown"}
                 </span>
               </div>
             </div>
-            <h2 className="text-xl font-bold text-foreground leading-tight">{selectedOpening.nameRu}</h2>
-            <p className="text-xs text-muted-foreground mt-1">{selectedOpening.nameEn}</p>
+            <h2 className="text-xl font-bold text-foreground leading-tight">{isRu ? selectedOpening.nameRu : selectedOpening.nameEn}</h2>
+            <p className="text-xs text-muted-foreground mt-1">{isRu ? selectedOpening.nameEn : selectedOpening.nameRu}</p>
             {selectedOpening.movesPreview && (
               <p className="text-sm font-mono text-foreground/80 mt-3">{selectedOpening.movesPreview}</p>
             )}
@@ -405,7 +433,7 @@ export function PopupLibrary() {
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
           <input
             type="text"
-            placeholder="Поиск дебютов..."
+            placeholder={isRu ? "Поиск дебютов..." : "Search openings..."}
             value={searchQuery}
             onChange={(event) => setSearchQuery(event.target.value)}
             className="w-full pl-9 pr-4 py-2 rounded-lg border border-border bg-card text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary/30 transition-all"
@@ -430,7 +458,7 @@ export function PopupLibrary() {
               tab === "general" ? "bg-primary/20 text-primary" : "text-muted-foreground hover:text-foreground"
             )}
           >
-            Общие
+            {isRu ? "Общие" : "General"}
           </button>
           {hasSecondPreset && (
             <button
@@ -445,7 +473,7 @@ export function PopupLibrary() {
                 tab === "second" ? "bg-primary/20 text-primary" : "text-muted-foreground hover:text-foreground"
               )}
             >
-              Вторые
+              {isRu ? "Вторые" : "Second"}
             </button>
           )}
         </div>
@@ -454,7 +482,9 @@ export function PopupLibrary() {
       {!selectedCategory && !searchQuery ? (
         <div className="flex-1 px-4 pb-4 overflow-y-auto">
           <h3 className="text-[10px] text-muted-foreground uppercase tracking-wider font-medium mb-2">
-            {tab === "second" ? "Вторые дебюты" : "Категории дебютов"}
+            {tab === "second"
+              ? (isRu ? "Вторые дебюты" : "Second openings")
+              : (isRu ? "Категории дебютов" : "Opening categories")}
           </h3>
           <div className="flex flex-col gap-2">
             {CATEGORY_ORDER.map((category) => (
@@ -467,7 +497,7 @@ export function PopupLibrary() {
                 <div className="w-9 h-9 rounded-lg bg-secondary/80 flex items-center justify-center shrink-0 group-hover:bg-primary/10 transition-colors">
                   <img
                     src={CATEGORY_ICON_BY_KEY[category]}
-                    alt={CATEGORY_LABELS[category]}
+                    alt={CATEGORY_LABELS[category][language]}
                     width={22}
                     height={22}
                     className="object-contain"
@@ -476,11 +506,11 @@ export function PopupLibrary() {
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between mb-0.5">
                     <span className="text-sm font-medium text-foreground group-hover:text-primary transition-colors">
-                      {CATEGORY_LABELS[category]}
+                      {CATEGORY_LABELS[category][language]}
                     </span>
                     <span className="text-[10px] text-muted-foreground font-mono">{categoryCounts[category]}</span>
                   </div>
-                  <p className="text-[10px] text-muted-foreground line-clamp-1">{CATEGORY_DESCRIPTIONS[category]}</p>
+                  <p className="text-[10px] text-muted-foreground line-clamp-1">{CATEGORY_DESCRIPTIONS[category][language]}</p>
                 </div>
                 <ChevronRight className="w-4 h-4 text-muted-foreground/40 group-hover:text-primary/60 shrink-0 transition-colors" />
               </button>
@@ -497,10 +527,10 @@ export function PopupLibrary() {
                 className="flex items-center gap-1.5 text-muted-foreground hover:text-foreground transition-colors mb-2"
               >
                 <ArrowLeft className="w-3.5 h-3.5" />
-                <span className="text-xs">Все категории</span>
+                <span className="text-xs">{isRu ? "Все категории" : "All categories"}</span>
               </button>
-              <h3 className="text-sm font-semibold text-foreground">{CATEGORY_LABELS[selectedCategory]}</h3>
-              <p className="text-[10px] text-muted-foreground mt-0.5">{CATEGORY_DESCRIPTIONS[selectedCategory]}</p>
+              <h3 className="text-sm font-semibold text-foreground">{CATEGORY_LABELS[selectedCategory][language]}</h3>
+              <p className="text-[10px] text-muted-foreground mt-0.5">{CATEGORY_DESCRIPTIONS[selectedCategory][language]}</p>
             </div>
           )}
 
@@ -537,7 +567,7 @@ export function PopupLibrary() {
                           isOutOfRating ? "text-destructive" : DIFFICULTY_COLORS[opening.difficultyKey]
                         )}
                       >
-                        {DIFFICULTY_LABELS[opening.difficultyKey]}
+                        {DIFFICULTY_LABELS[opening.difficultyKey]?.[language] ?? opening.difficultyKey}
                       </span>
                       <div className="flex items-center gap-2">
                         <span className="text-sm font-mono text-muted-foreground">{opening.ratingRange}</span>
@@ -552,17 +582,17 @@ export function PopupLibrary() {
                           )}
                         >
                           {opening.openingColor === "white"
-                            ? "Бел"
+                            ? isRu ? "Бел" : "W"
                             : opening.openingColor === "black"
-                              ? "Чёр"
+                              ? isRu ? "Чёр" : "B"
                               : "?"}
                         </span>
                       </div>
                     </div>
 
-                    <p className="text-sm font-semibold text-foreground truncate">{opening.nameRu}</p>
+                    <p className="text-sm font-semibold text-foreground truncate">{isRu ? opening.nameRu : opening.nameEn}</p>
                     {isOutOfRating && (
-                      <p className="text-[10px] text-destructive font-medium mt-1">не по рейтингу</p>
+                      <p className="text-[10px] text-destructive font-medium mt-1">{isRu ? "не по рейтингу" : "out of rating"}</p>
                     )}
                     {opening.movesPreview && (
                       <p className="text-[10px] text-muted-foreground mt-1 truncate">{opening.movesPreview}</p>
@@ -591,7 +621,7 @@ export function PopupLibrary() {
             ))}
             {filtered.length === 0 && (
               <div className="p-4 rounded-xl bg-card border border-border/50">
-                <p className="text-xs text-muted-foreground">Ничего не найдено.</p>
+                <p className="text-xs text-muted-foreground">{isRu ? "Ничего не найдено." : "No results found."}</p>
               </div>
             )}
           </div>
