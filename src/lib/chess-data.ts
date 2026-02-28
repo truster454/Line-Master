@@ -91,7 +91,7 @@ export const ratingLabels: Record<RatingRange, string> = {
   "2000+": "Мастер",
 };
 
-// Mock opening data
+// Opening data
 export const openings: ChessOpening[] = [
   {
     id: "italian-game",

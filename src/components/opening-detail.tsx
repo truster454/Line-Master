@@ -188,12 +188,6 @@ export function OpeningDetail({
             </div>
           </div>
 
-          {/* Placeholder for future features */}
-          <div className="flex flex-col gap-2 p-4 rounded-xl border border-dashed border-border bg-muted/30">
-            <p className="text-xs text-muted-foreground text-center">
-              Анализ вариантов и комментарии будут доступны в следующем обновлении
-            </p>
-          </div>
         </div>
       </div>
     </div>
